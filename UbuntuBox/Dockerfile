@@ -15,7 +15,7 @@
 #   docker run --rm -p 6080:6080 --shm-size=256m opencyberrange/ubuntubox:latest
 #   Open http://localhost:6080/vnc.html
 
-FROM ubuntu:22.04
+FROM ubuntu:26.04
 
 ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
