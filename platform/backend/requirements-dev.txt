@@ -2,11 +2,11 @@
 -r requirements.txt
 matplotlib>=3.10
 mkdocs==1.6.1
-mkdocs-material==9.7.4
-pymdown-extensions==10.8
+mkdocs-material==9.7.7
+pymdown-extensions==11.0.1
 
 # Test harness (pytest suite under tests/, config in pytest.ini)
-pytest==8.2.2
+pytest==9.0.3
 pytest-asyncio==0.23.7
 httpx==0.26.0
 # Postgres driver for the ephemeral test database (same pin as requirements.txt)
