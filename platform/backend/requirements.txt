@@ -22,4 +22,4 @@ pywinrm>=0.4.3
 alembic==1.13.1
 pyotp==2.10.0
 
-qrcode[pil]==7.4.2
+qrcode[pil]==8.2
