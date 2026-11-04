@@ -73,8 +73,9 @@ and a downloadable PDF transcript.
 
 **Celebration Wall.** A shared recognition page for recent wins. It is a
 spotlight, not a public leaderboard: individual badge counts and ranks are not
-shown. Learners can opt out of the public wall at any time and still see their
-own private corner.
+shown. Learners choose whether their wins show their real name, their username,
+or "Anonymous participant", and can opt out of the public wall at any time while
+still seeing their own private corner.
 
 ![Celebration Wall](docs/img/celebration-wall.png)
 
@@ -82,8 +83,8 @@ own private corner.
 events using selected exercises. The event uses the existing lab scoring rules
 (completion, no-hint, first-attempt, speed, and competition first blood).
 Only solves during the event window count. Learners choose to join, can leave
-at any time, and see a dedicated event leaderboard. Learners who opted out of
-public scoreboards appear as “Anonymous participant”.
+at any time, and see a dedicated event leaderboard. The same name preference
+applies: real name, username, or "Anonymous participant".
 
 Competitions are separate from course grades and the learning record; they are
 not used for progression, discipline, or public ranking of learning outcomes.
@@ -274,8 +275,9 @@ classrooms where not every student has the same hardware:
   ship the supporting tools.
 - **No public ranking.** The Celebration Wall shows recent wins and a
   non-ranked spotlight. It does not publish individual badge counts or ranks.
-  Learners can opt out via “Show me on the wall”; opted-out users still see their
-  own private corner. Admin diagnostic accounts are excluded.
+  Learners choose a real-name, username, or anonymous label, and can opt out via
+  “Show me on the wall”; opted-out users still see their own private corner.
+  Admin diagnostic accounts are excluded.
 - **Data minimisation.** The wall exposes only a display name, the latest badge,
   and a relative timestamp. It does not expose email addresses, student IDs, or
   avatars.

@@ -96,12 +96,15 @@ in the navigation bar**.
 
 ## Analysis Questions
 
-1. Why is `robots.txt` a hint rather than a security control?
-2. What other files might reveal a site's structure before you browse it?
-3. How would you record the notes page so another analyst can reproduce your
-   finding?
-4. What is the difference between hiding a page and protecting a page?
-5. What would you remove from the review page before publishing the site?
+**1. Why is `robots.txt` a hint rather than a security control?**
+
+**2. What other files might reveal a site's structure before you browse it?**
+
+**3. How would you record the notes page so another analyst can reproduce your finding?**
+
+**4. What is the difference between hiding a page and protecting a page?**
+
+**5. What would you remove from the review page before publishing the site?**
 
 ## Defensive Takeaways
 

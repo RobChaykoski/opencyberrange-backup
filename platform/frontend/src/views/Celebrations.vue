@@ -64,6 +64,9 @@
           <p v-else-if="!me.listed" class="your-corner__rank your-corner__rank--muted">
             Private mode: your wins stay off the wall
           </p>
+          <p v-else-if="me.name_mode === 'anonymous'" class="your-corner__rank">
+            Your wins appear as Anonymous participant
+          </p>
           <p v-else-if="me.badge_count" class="your-corner__rank">
             Your wins are on the wall
           </p>
@@ -87,6 +90,20 @@
             />
             <span>{{ privacySaving ? 'Saving...' : 'Show me on the wall' }}</span>
           </label>
+
+          <label v-if="me.can_list" class="your-corner__name">
+            <span>Name on the wall</span>
+            <select
+              :value="me.name_mode || 'real_name'"
+              :disabled="privacySaving"
+              @change="setNameMode($event)"
+            >
+              <option value="real_name">Real name &mdash; {{ me.display_name }}</option>
+              <option value="username">Username &mdash; @{{ me.username }}</option>
+              <option value="anonymous">Anonymous participant</option>
+            </select>
+          </label>
+
           <p v-if="privacyMessage" class="your-corner__privacy-msg">{{ privacyMessage }}</p>
 
           <router-link to="/profile" class="your-corner__link">Open trophy case</router-link>
@@ -308,6 +325,29 @@ const setListing = async (event) => {
     await loadWall()
   } catch {
     event.target.checked = !shown
+    privacyMessage.value = 'Could not update that setting. Please try again.'
+  } finally {
+    privacySaving.value = false
+  }
+}
+
+const setNameMode = async (event) => {
+  const mode = event.target.value
+  privacySaving.value = true
+  privacyMessage.value = ''
+  try {
+    await axios.put('/auth/settings', { scoreboard_name_mode: mode })
+    if (wall.value.me) {
+      wall.value.me.name_mode = mode
+    }
+    privacyMessage.value = mode === 'anonymous'
+      ? 'Your wins will appear as Anonymous participant.'
+      : mode === 'username'
+        ? 'Your username will appear on the wall.'
+        : 'Your real name will appear on the wall.'
+    await loadWall()
+  } catch {
+    event.target.value = wall.value.me?.name_mode || 'real_name'
     privacyMessage.value = 'Could not update that setting. Please try again.'
   } finally {
     privacySaving.value = false
@@ -543,6 +583,25 @@ const relativeTime = (iso) => {
 
 .your-corner__privacy input {
   accent-color: var(--accent);
+}
+
+.your-corner__name {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.your-corner__name select {
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.72rem;
 }
 
 .your-corner__privacy-msg {

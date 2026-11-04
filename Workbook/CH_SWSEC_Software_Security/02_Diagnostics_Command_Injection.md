@@ -92,11 +92,15 @@ shell.
 
 ## Analysis Questions
 
-1. Which character changed the meaning of the command?
-2. Why does `shell=False` with an argument array prevent this?
-3. What other characters can separate commands in a shell?
-4. Why is an allowlist safer than a blocklist for hostnames?
-5. What privilege should the diagnostics service run with, and why?
+**1. Which character changed the meaning of the command?**
+
+**2. Why does `shell=False` with an argument array prevent this?**
+
+**3. What other characters can separate commands in a shell?**
+
+**4. Why is an allowlist safer than a blocklist for hostnames?**
+
+**5. What privilege should the diagnostics service run with, and why?**
 
 ## Defensive Takeaways
 

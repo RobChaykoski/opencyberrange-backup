@@ -39,11 +39,15 @@ authoritative server for `range.local`, so you will query it directly.
 
 | Record | Purpose | Example |
 |---|---|---|
-| **A** | Name to IPv4 address | `portal.range.local -> 10.100.3.10` |
+| **A** | Name to IPv4 address | `portal.range.local -> 10.100.13.10` |
 | **AAAA** | Name to IPv6 address | `portal.range.local -> 2001:db8::10` |
 | **CNAME** | Alias to another name | `alias.range.local -> portal.range.local` |
 | **MX** | Mail server for a domain | `range.local -> mail.range.local` |
 | **TXT** | Free-form text | `v=spf1 -all` |
+
+> **Note:** The address above is from the reference `10.100.13.0/24` subnet.
+> Your session may use a different `/24`; use the address shown in the
+> **Active Lab View**. Static examples are not updated when the range changes.
 
 ### TTL and caching
 

@@ -234,12 +234,13 @@ def _leaderboard(
 
         user = participant.user
         display_name = (
-            user.display_name if getattr(user, "show_on_scoreboard", True)
+            user.scoreboard_name if getattr(user, "show_on_scoreboard", True)
             else "Anonymous participant"
         )
+        anonymous = display_name == "Anonymous participant"
         entries.append({
             "user_id": user.id,
-            "username": user.username,
+            "username": None if anonymous else user.username,
             "display_name": display_name,
             "score": score,
             "solved_count": solved,

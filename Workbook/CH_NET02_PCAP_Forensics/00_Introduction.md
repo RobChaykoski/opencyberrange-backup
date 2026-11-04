@@ -65,13 +65,20 @@ graph LR
 
 ## Lab Overview
 
-| Exercise | Title | Protocol | PCAP File |
-|-----|-------|----------|-----------|
-| 2.1 | FTP Credential Extraction | FTP | medical-records-ftp.pcap |
-| 2.2 | SMTP Email Analysis | SMTP | email-exfiltration.pcap |
-| 2.3 | HTTP Session Hijacking | HTTP | session-hijack.pcap |
-| 2.4 | DNS Data Exfiltration | DNS | dns-tunnel.pcap |
-| 2.5 | Attack Chain Analysis | Multi-protocol | full-attack.pcap |
+| Exercise | Title | Protocol | PCAP File | Local copy |
+|-----|-------|----------|-----------|------------|
+| 2.1 | FTP Credential Extraction | FTP | `medical-records-ftp.pcap` | [Download](captures/medical-records-ftp.pcap) |
+| 2.2 | SMTP Email Analysis | SMTP | `email-exfiltration.pcap` | [Download](captures/email-exfiltration.pcap) |
+| 2.3 | HTTP Session Hijacking | HTTP | `session-hijack.pcap` | [Download](captures/session-hijack.pcap) |
+| 2.4 | DNS Data Exfiltration | DNS | `dns-tunnel.pcap` | [Download](captures/dns-tunnel.pcap) |
+| 2.5 | Attack Chain Analysis | Multi-protocol | `full-attack.pcap` | [Download](captures/full-attack.pcap) |
+
+!!! note "Download the example captures"
+    Each capture is also available from this workbook for offline review without
+    launching the lab. The links above download the same example files used by
+    the exercises. Lab containers regenerate their captures at build time, so
+    timestamps, ephemeral ports, and packet counts can differ slightly from a
+    running lab; the scenarios and indicators are the same.
 
 ---
 

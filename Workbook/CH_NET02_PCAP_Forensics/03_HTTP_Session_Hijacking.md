@@ -67,6 +67,10 @@ changes from the one that originally authenticated.
 
 ## Walkthrough
 
+!!! note "Download the example capture"
+    You can download a copy of this capture for offline review without the lab:
+    [session-hijack.pcap](captures/session-hijack.pcap).
+
 ### Step 1: Launch the Exercise
 
 Start the lab environment from the launcher. Wait for the container to initialize
@@ -211,30 +215,36 @@ The flag is embedded in the session cookie value itself in `OCR{<flag_here>}` fo
 **1. How did you determine which IP was the legitimate user and which was the
 attacker?**
 
-> The legitimate user (10.0.1.15) performed the login POST request and received
-> the Set-Cookie header from the server. The attacker (10.0.1.87) never logged
-> in; they appeared approximately seven minutes later using the same cookie
-> without any prior authentication. The lack of a login sequence from the
-> attacker's IP is the key indicator.
+??? note "Reveal Answer"
+
+    The legitimate user (10.0.1.15) performed the login POST request and received
+    the Set-Cookie header from the server. The attacker (10.0.1.87) never logged
+    in; they appeared approximately seven minutes later using the same cookie
+    without any prior authentication. The lack of a login sequence from the
+    attacker's IP is the key indicator.
 
 **2. The attack happened over HTTP (port 80). How would HTTPS have prevented
 it?**
 
-> HTTPS encrypts all traffic including cookies. An attacker sniffing the network
-> would see only encrypted data and could not extract the session cookie.
-> Combined with the Secure cookie flag, which prevents the browser from sending
-> the cookie over HTTP, HTTPS eliminates network-based session hijacking.
+??? note "Reveal Answer"
+
+    HTTPS encrypts all traffic including cookies. An attacker sniffing the network
+    would see only encrypted data and could not extract the session cookie.
+    Combined with the Secure cookie flag, which prevents the browser from sending
+    the cookie over HTTP, HTTPS eliminates network-based session hijacking.
 
 **3. What cookie attributes would make session hijacking harder even without
 HTTPS?**
 
-> HttpOnly prevents JavaScript from reading the cookie, which blocks XSS-based
-> theft. SameSite=Strict prevents the cookie from being sent in cross-site
-> requests, which blocks CSRF. Short session timeouts reduce the window of
-> opportunity for an attacker to reuse a stolen cookie. IP binding on the server
-> side rejects the cookie if the source IP changes from the one that originally
-> authenticated. None of these fully replace HTTPS, but they add defense in
-> depth.
+??? note "Reveal Answer"
+
+    HttpOnly prevents JavaScript from reading the cookie, which blocks XSS-based
+    theft. SameSite=Strict prevents the cookie from being sent in cross-site
+    requests, which blocks CSRF. Short session timeouts reduce the window of
+    opportunity for an attacker to reuse a stolen cookie. IP binding on the server
+    side rejects the cookie if the source IP changes from the one that originally
+    authenticated. None of these fully replace HTTPS, but they add defense in
+    depth.
 
 ## Key Takeaways
 

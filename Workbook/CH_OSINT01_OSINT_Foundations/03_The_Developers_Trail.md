@@ -104,11 +104,15 @@ search indexes.
 
 ## Analysis Questions
 
-1. Why is minification not a security control?
-2. What kinds of comments should never reach production JavaScript?
-3. How would you search a public repository without cloning it?
-4. What should a team do if a real token was committed to a public repo?
-5. How can source maps make a review easier?
+**1. Why is minification not a security control?**
+
+**2. What kinds of comments should never reach production JavaScript?**
+
+**3. How would you search a public repository without cloning it?**
+
+**4. What should a team do if a real token was committed to a public repo?**
+
+**5. How can source maps make a review easier?**
 
 ## Defensive Takeaways
 

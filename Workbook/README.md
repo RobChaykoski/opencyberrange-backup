@@ -188,9 +188,12 @@ Each individual lab walkthrough uses the following template:
 ...
 
 ## Analysis Questions
-1. [Question requiring interpretation]
-2. [Question connecting to real-world context]
-3. [Question about defensive countermeasures]
+
+**1. [Question requiring interpretation]**
+
+**2. [Question connecting to real-world context]**
+
+**3. [Question about defensive countermeasures]**
 
 ## Key Takeaways
 - [What you learned]

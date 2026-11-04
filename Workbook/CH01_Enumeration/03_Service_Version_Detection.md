@@ -47,7 +47,7 @@ The key difference from a basic scan is the **VERSION** column that appears in t
 
 ```
 Starting Nmap 7.94 ( https://nmap.org )
-Nmap scan report for 10.100.5.10
+Nmap scan report for 10.100.13.10
 Host is up (0.0031s latency).
 Not shown: 997 closed ports
 PORT     STATE SERVICE        VERSION

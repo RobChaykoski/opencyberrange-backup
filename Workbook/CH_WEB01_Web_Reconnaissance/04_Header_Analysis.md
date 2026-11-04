@@ -227,15 +227,21 @@ Enter the flag from the `X-Secret-Key` header in the format `OCR{________}` on t
 
 **1. Why is a missing Content-Security-Policy header a security concern?**
 
-> Without CSP, the browser loads resources (scripts, styles, images) from any origin. An attacker who finds a cross-site scripting vulnerability can inject a script tag pointing to their own server, and the browser will execute it without restriction. CSP limits which origins the browser trusts, containing the impact of XSS.
+??? note "Reveal Answer"
+
+    Without CSP, the browser loads resources (scripts, styles, images) from any origin. An attacker who finds a cross-site scripting vulnerability can inject a script tag pointing to their own server, and the browser will execute it without restriction. CSP limits which origins the browser trusts, containing the impact of XSS.
 
 **2. Why should debug headers like `X-Debug-Mode` and `X-Backend-Server` never appear in production?**
 
-> Debug headers expose internal architecture details. `X-Backend-Server` reveals internal hostnames that help an attacker map the network. `X-Debug-Mode: enabled` confirms the application is running in a verbose error state, which typically means stack traces, database queries, and file paths are visible in error responses. Those leaked details dramatically simplify an attacker's work.
+??? note "Reveal Answer"
+
+    Debug headers expose internal architecture details. `X-Backend-Server` reveals internal hostnames that help an attacker map the network. `X-Debug-Mode: enabled` confirms the application is running in a verbose error state, which typically means stack traces, database queries, and file paths are visible in error responses. Those leaked details dramatically simplify an attacker's work.
 
 **3. Why was the flag hidden in a header on `/headers.php` rather than on the main page?**
 
-> The hidden flag demonstrates that different endpoints return different headers. Security testing must check headers across all accessible pages, not just the main index. Developers often add debug endpoints or test pages with additional headers that leak information. A tester who only checks the main page misses findings on secondary endpoints entirely.
+??? note "Reveal Answer"
+
+    The hidden flag demonstrates that different endpoints return different headers. Security testing must check headers across all accessible pages, not just the main index. Developers often add debug endpoints or test pages with additional headers that leak information. A tester who only checks the main page misses findings on secondary endpoints entirely.
 
 ---
 

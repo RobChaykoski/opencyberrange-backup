@@ -91,12 +91,17 @@ An attacker can use this to make an AI agent:
 
 ## Analysis Questions
 
-1. Who wrote the malicious instruction, and who triggered it?
-2. Why is "the assistant only reads trusted tickets" a weak assumption?
-3. How would delimiters or a structured data field reduce the risk?
-4. Why should an AI agent require approval before taking an action?
-5. What would you log to trace an indirect injection through a ticket?
-6. How is this similar to server-side request forgery?
+**1. Who wrote the malicious instruction, and who triggered it?**
+
+**2. Why is "the assistant only reads trusted tickets" a weak assumption?**
+
+**3. How would delimiters or a structured data field reduce the risk?**
+
+**4. Why should an AI agent require approval before taking an action?**
+
+**5. What would you log to trace an indirect injection through a ticket?**
+
+**6. How is this similar to server-side request forgery?**
 
 ## Defensive Takeaways
 

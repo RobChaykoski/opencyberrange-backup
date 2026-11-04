@@ -37,7 +37,7 @@ Answer the following questions without looking back at the walkthroughs. If you 
 >
 > &nbsp;
 
-**2.** You run `nmap 10.100.5.10` and see 3 open ports. You then run `nmap -p- 10.100.5.10` and see 5 open ports. Why?
+**2.** You run `nmap 10.100.13.10` and see 3 open ports. You then run `nmap -p- 10.100.13.10` and see 5 open ports. Why?
 
 > &nbsp;
 >

@@ -1985,7 +1985,7 @@
             <h3 class="modal-title">Disk Management</h3>
             <p class="modal-subtitle">Docker images, build cache, and disk usage</p>
 
-            <div v-if="diskUsageLoading" style="text-align: center; padding: 2rem; color: rgba(255,255,255,0.5);">
+            <div v-if="diskUsageLoading" class="disk-loading">
               Loading disk usage...
             </div>
             <div v-else-if="diskUsage" class="disk-usage-grid">
@@ -9287,9 +9287,9 @@ watch(activeTab, (tab) => {
   transition: width 0.6s ease;
 }
 
-.disk-bar--healthy { background: #4ade80; }
-.disk-bar--warning { background: #fbbf24; }
-.disk-bar--critical { background: #f87171; }
+.disk-bar--healthy { background: var(--success); }
+.disk-bar--warning { background: var(--warning); }
+.disk-bar--critical { background: var(--danger); }
 
 /* Backup actions */
 .backup-actions {
@@ -10505,6 +10505,12 @@ watch(activeTab, (tab) => {
 }
 
 /* Disk Management Modal */
+.disk-loading {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+}
+
 .disk-usage-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -10513,15 +10519,15 @@ watch(activeTab, (tab) => {
 }
 
 .disk-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
 }
 
 .disk-card__label {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
@@ -10535,7 +10541,7 @@ watch(activeTab, (tab) => {
 
 .disk-card__detail {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   margin-top: 0.25rem;
 }
 
@@ -10545,8 +10551,8 @@ watch(activeTab, (tab) => {
   align-items: center;
   gap: 1rem;
   padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
 }
 
@@ -10557,7 +10563,7 @@ watch(activeTab, (tab) => {
 
 .disk-action-desc {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-secondary);
   margin-top: 0.125rem;
 }
 

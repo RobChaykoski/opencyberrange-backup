@@ -52,75 +52,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 LABS_DIR = os.environ.get('LABS_DIR', '/labs')
 
 
-def parse_lab_slug(dirname):
-    """Extract track, level, and lab number from directory name
-
-    Examples:
-        web-1-1-basic-directory-enumeration -> (web, 1, 1)
-        web-2-1-basic-sql-injection-get -> (web, 2, 1)
-        windows-1-1-basic-port-scan -> (windows, 1, 1)
-        windows-8-1-single-service-credential-discovery -> (windows, 8, 1)
-        windows-server-1-1-dc-port-discovery -> (windows-server, 1, 1)
-        linux-midterm-3-blind-penetration-test -> (linux, None, 3)
-
-    Supports compound track slugs: walks parts left-to-right, concatenating
-    non-numeric parts as the track slug until the first numeric part (level).
-
-    Midterm directories ({track}-midterm-{N}-...) return level_num=None and
-    the midterm number as lab_num so callers can assign them without a level.
-    """
-    parts = dirname.split('-')
-    if len(parts) < 3:
-        return None, None, None
-
-    # Build track slug by consuming non-numeric prefix parts
-    track_parts = []
-    i = 0
-    while i < len(parts):
-        # Check for pure numeric part (level number)
-        try:
-            int(parts[i])
-            break  # Found first numeric part
-        except ValueError:
-            pass
-        # Check for drill-style level like "D1", "D2" etc.
-        drill_match = re.match(r'^[Dd](\d+)$', parts[i])
-        if drill_match:
-            break  # Treat D1, D2 etc. as the level indicator
-        track_parts.append(parts[i].lower())
-        i += 1
-
-    if not track_parts or i + 1 >= len(parts):
-        return None, None, None
-
-    # Handle midterm and final directories: {track}-{midterm|final}-{N}-{description}
-    # Both share the level=None pattern so they exist outside the regular level
-    # progression. lab_num for finals is offset by 500 to avoid collision with
-    # midterm lab_nums in the same track.
-    if track_parts[-1] in ('midterm', 'final'):
-        base_track = '-'.join(track_parts[:-1])
-        if not base_track:
-            return None, None, None
-        try:
-            special_num = int(parts[i])
-            if track_parts[-1] == 'final':
-                special_num = 500 + special_num
-            return base_track, None, special_num
-        except (ValueError, IndexError):
-            return None, None, None
-
-    track_slug = '-'.join(track_parts)
-    try:
-        # Handle drill-style levels (D1 -> level 901, D2 -> 902, etc.)
-        drill_match = re.match(r'^[Dd](\d+)$', parts[i])
-        if drill_match:
-            level_num = 900 + int(drill_match.group(1))
-        else:
-            level_num = int(parts[i])
-        lab_num = int(parts[i + 1])
-        return track_slug, level_num, lab_num
-    except (ValueError, IndexError):
-        return None, None, None
+from app.services.lab_naming import parse_lab_slug
 
 
 def hash_flag(flag):

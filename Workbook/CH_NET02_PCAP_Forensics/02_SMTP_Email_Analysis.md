@@ -70,6 +70,10 @@ and a privileged account sending data outside normal communication patterns.
 
 ## Walkthrough
 
+!!! note "Download the example capture"
+    You can download a copy of this capture for offline review without the lab:
+    [email-exfiltration.pcap](captures/email-exfiltration.pcap).
+
 ### Step 1: Launch the Exercise and Note Your Target IP
 
 Start the lab from the OpenCyberRange platform and note the target IP address
@@ -235,28 +239,34 @@ Summarize what you found before closing the investigation:
 **1. The PCAP contains several legitimate internal emails. How did you filter
 them out to find the suspicious one?**
 
-> By piping the RCPT TO output through `grep -v medicare.local` to exclude
-> internal recipients. The only email going to an external address
-> (protonmail.com) was the suspicious one. In a real investigation, you would
-> also check for emails to personal email services, file sharing domains, and
-> newly registered domains.
+??? note "Reveal Answer"
+
+    By piping the RCPT TO output through `grep -v medicare.local` to exclude
+    internal recipients. The only email going to an external address
+    (protonmail.com) was the suspicious one. In a real investigation, you would
+    also check for emails to personal email services, file sharing domains, and
+    newly registered domains.
 
 **2. The email was sent from dbadmin@medicare.local. What makes this sender
 particularly concerning?**
 
-> A database administrator has privileged access to patient records. An email
-> from this account containing database export information, patient record
-> counts, and backup credentials suggests either a malicious insider or a
-> compromised admin account. Either scenario is a critical security incident.
+??? note "Reveal Answer"
+
+    A database administrator has privileged access to patient records. An email
+    from this account containing database export information, patient record
+    counts, and backup credentials suggests either a malicious insider or a
+    compromised admin account. Either scenario is a critical security incident.
 
 **3. The email body contained a link to an external file sharing service. What
 additional investigation would you perform?**
 
-> Check whether the file sharing URL was accessed from any internal system
-> (look for HTTP/HTTPS requests to that domain in the PCAP or proxy logs).
-> Attempt to determine what was uploaded. Review the dbadmin account's login
-> history and file access logs. Check if the backup_admin credentials in the
-> email are still valid.
+??? note "Reveal Answer"
+
+    Check whether the file sharing URL was accessed from any internal system
+    (look for HTTP/HTTPS requests to that domain in the PCAP or proxy logs).
+    Attempt to determine what was uploaded. Review the dbadmin account's login
+    history and file access logs. Check if the backup_admin credentials in the
+    email are still valid.
 
 ---
 

@@ -87,7 +87,7 @@ A full scan produces significantly more output than any individual scan. The res
 
 ```
 Starting Nmap 7.94 ( https://nmap.org )
-Nmap scan report for 10.100.5.10
+Nmap scan report for 10.100.13.10
 Host is up (0.0028s latency).
 Not shown: 996 closed ports
 
@@ -112,7 +112,7 @@ OS CPE: cpe:/o:microsoft:windows_server_2019
 
 TRACEROUTE
 HOP RTT     ADDRESS
-1   2.84 ms 10.100.5.10
+1   2.84 ms 10.100.13.10
 
 Nmap done: 1 IP address (1 host up) scanned in 48.21 seconds
 ```

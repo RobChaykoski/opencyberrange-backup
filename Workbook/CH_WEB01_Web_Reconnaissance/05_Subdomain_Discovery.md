@@ -262,15 +262,21 @@ Enter the flag from `admin.lab/flag.txt` in the format `OCR{________}` on the la
 
 **1. Why does DNS-mode enumeration (gobuster dns, dnsrecon, sublist3r) find nothing in this lab?**
 
-> Each tool depends on DNS. Gobuster dns and dnsrecon brute-force or query names against a resolver, and sublist3r scrapes public sources for a registered domain. The lab has no DNS server and no public registration, so there is nothing for them to query. The hosts exist only as separate IP addresses on the subnet, which is why a subnet sweep finds them and DNS tools do not.
+??? note "Reveal Answer"
+
+    Each tool depends on DNS. Gobuster dns and dnsrecon brute-force or query names against a resolver, and sublist3r scrapes public sources for a registered domain. The lab has no DNS server and no public registration, so there is nothing for them to query. The hosts exist only as separate IP addresses on the subnet, which is why a subnet sweep finds them and DNS tools do not.
 
 **2. Why are admin hosts often less secure than the main application?**
 
-> Admin interfaces are typically built for internal use and receive less scrutiny during security reviews. They may lack authentication on certain paths, skip security header configuration, or rely on the assumption that the host is "hidden." Obscurity is not security: a subnet sweep discovers these hosts in minutes.
+??? note "Reveal Answer"
+
+    Admin interfaces are typically built for internal use and receive less scrutiny during security reviews. They may lack authentication on certain paths, skip security header configuration, or rely on the assumption that the host is "hidden." Obscurity is not security: a subnet sweep discovers these hosts in minutes.
 
 **3. How does a subnet sweep differ from directory brute forcing?**
 
-> Directory brute forcing sends HTTP requests to one web server and checks response codes for paths within that single host. A subnet sweep sends connection probes to many addresses and checks which hosts answer on the web port. They operate at different layers: directory enumeration works inside one host, while a subnet sweep discovers entirely separate hosts, each with its own application, server, and configuration.
+??? note "Reveal Answer"
+
+    Directory brute forcing sends HTTP requests to one web server and checks response codes for paths within that single host. A subnet sweep sends connection probes to many addresses and checks which hosts answer on the web port. They operate at different layers: directory enumeration works inside one host, while a subnet sweep discovers entirely separate hosts, each with its own application, server, and configuration.
 
 ---
 

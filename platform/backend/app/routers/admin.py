@@ -41,6 +41,7 @@ from app.services.activity import log_activity, EventTypes
 from app.services.achievements import resolve_achievement_label
 from app.services.erasure import erase_user, ErasureBlocked
 from app.services.file_lock import open_locked
+from app.services.lab_naming import parse_lab_slug
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -2482,6 +2483,79 @@ async def get_lab_details_admin(
 
 # ==================== Lab Discovery ====================
 
+def _ensure_curriculum_structure(db: Session):
+    """Create any missing tracks and levels before scanning labs.
+
+    Older installations can be missing a whole track even though the lab
+    directories and curriculum definitions are present. Scanning exercises
+    should leave the operator with usable labs, not "track not found" warnings,
+    so add only the missing structure. Existing tracks and levels are never
+    renamed or overwritten.
+    """
+    from app.scripts.seed_curriculum import EXTRA_LEVELS, TRACKS
+
+    tracks = {track.slug: track for track in db.query(Track).all()}
+    levels = {
+        (level.track_id, level.level_number)
+        for level in db.query(Level).all()
+    }
+    tracks_created = 0
+    levels_created = 0
+
+    for track_data in TRACKS:
+        track = tracks.get(track_data["slug"])
+        if not track:
+            track = Track(
+                name=track_data["name"],
+                slug=track_data["slug"],
+                description=track_data.get("description"),
+                icon=track_data.get("icon"),
+                color=track_data.get("color"),
+                sort_order=track_data.get("sort_order", 0),
+                is_active=True,
+            )
+            db.add(track)
+            db.flush()
+            tracks[track.slug] = track
+            tracks_created += 1
+
+        for level_data in track_data.get("levels", []):
+            key = (track.id, level_data["level_number"])
+            if key in levels:
+                continue
+            db.add(Level(
+                track_id=track.id,
+                level_number=level_data["level_number"],
+                name=level_data["name"],
+                description=level_data.get("description"),
+                sort_order=level_data["level_number"],
+            ))
+            levels.add(key)
+            levels_created += 1
+
+    for level_data in EXTRA_LEVELS:
+        track = tracks.get(level_data["track_slug"])
+        if not track:
+            continue
+        key = (track.id, level_data["level_number"])
+        if key in levels:
+            continue
+        db.add(Level(
+            track_id=track.id,
+            level_number=level_data["level_number"],
+            name=level_data["name"],
+            description=level_data.get("description"),
+            sort_order=level_data["level_number"],
+        ))
+        levels.add(key)
+        levels_created += 1
+
+    if tracks_created or levels_created:
+        db.commit()
+
+    return tracks_created, levels_created
+
+
 @router.post("/labs/discover")
 @limiter.limit("5/minute")
 async def discover_labs(
@@ -2501,6 +2575,8 @@ async def discover_labs(
     LABS_DIR = "/labs"
     if not os.path.exists(LABS_DIR):
         raise HTTPException(status_code=500, detail="Labs directory not found")
+
+    tracks_created, levels_created = _ensure_curriculum_structure(db)
 
     # Get all tracks and levels
     tracks = {}
@@ -2530,21 +2606,12 @@ async def discover_labs(
             if not os.path.exists(yaml_path):
                 continue
 
-            # Parse slug: track-level-num-name  (e.g. linux-1-3-ssh-basics)
-            # Also supports non-numeric names  (e.g. linux-midterm-2-full-penetration-test)
-            parts = lab_dirname.split('-')
-            if len(parts) < 3:
+            # Parse the same way the discovery script does, so compound track
+            # slugs such as high-school and software-security resolve correctly.
+            track_slug, level_num, lab_num = parse_lab_slug(lab_dirname)
+            if not track_slug:
                 errors.append(f"Cannot parse: {lab_dirname}")
                 continue
-
-            track_slug = parts[0].lower()
-            try:
-                level_num = int(parts[1])
-                lab_num = int(parts[2])
-            except ValueError:
-                # Non-standard naming (e.g. midterm, capstone) — import without level
-                level_num = None
-                lab_num = 0
 
             track_id = tracks.get(track_slug)
             if not track_id:
@@ -2553,10 +2620,14 @@ async def discover_labs(
 
             level_id = None
             if level_num is not None:
-                level_id = levels.get((track_id, level_num))
+                # Drill labs use level 901/902/... to sort after the base level.
+                lookup_level = level_num - 900 if level_num >= 900 else level_num
+                level_id = levels.get((track_id, lookup_level))
                 if not level_id:
                     errors.append(f"Level {level_num} not found in '{track_slug}': {lab_dirname} (imported with no level)")
                     # Continue anyway with level_id=None — allows course-only labs and assessments
+                elif level_num >= 900:
+                    lab_num = 100 + lab_num
 
             try:
                 with open(yaml_path, 'r') as f:
@@ -2648,6 +2719,8 @@ async def discover_labs(
         "message": f"Discovered {created + updated} labs ({created} new, {updated} updated)",
         "created": created,
         "updated": updated,
+        "tracks_created": tracks_created,
+        "levels_created": levels_created,
         "errors": errors
     }
 

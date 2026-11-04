@@ -1,5 +1,12 @@
 # Exercise 12.1: Firewall Fundamentals - Controlling Inbound Traffic
 
+!!! note "Example IP addresses"
+    The examples in this exercise use `10.100.13.0/24`, the subnet in the
+    reference setup. The platform assigns each student session its own `/24`
+    and displays it in the **Active Lab View**. If your session uses a
+    different subnet, substitute your address in every command. These static
+    examples are not updated automatically when the range changes.
+
 ## Before You Begin
 
 You should be comfortable with basic Linux commands and SSH. Your VPN must be connected and your terminal open. The exercise introduces firewall concepts from the operator's perspective: you will be working directly on the firewall, not attacking it.
@@ -72,7 +79,7 @@ sudo iptables -A FORWARD -p tcp --dport 80 -j ACCEPT
 |-----------|------|---------|----------|
 | Chain | (positional) | Where to apply the rule | `INPUT` (to this host), `OUTPUT` (from this host), `FORWARD` (through this host) |
 | Protocol | `-p` | Match protocol type | `tcp`, `udp`, `icmp` |
-| Source IP | `-s` | Match source address | `10.100.2.23`, `192.168.0.0/24` |
+| Source IP | `-s` | Match source address | `10.100.13.23`, `192.168.0.0/24` |
 | Dest port | `--dport` | Match destination port | `80`, `443`, `3306` |
 | Action | `-j` | What to do with matching traffic | `ACCEPT`, `DROP`, `REJECT` |
 
@@ -126,7 +133,7 @@ The firewall sits between the dev server and the web server. Your job is to conf
 Before connecting to the firewall, scan the lab subnet from Kali to see what is running. The scan gives you a picture of the network from an external perspective.
 
 !!! kali "Run a service version scan against the lab subnet"
-    Replace `<subnet>` with the subnet shown in the Active Lab View (for example, `10.100.2.0/24`).
+    Replace `<subnet>` with the subnet shown in the Active Lab View (for example, `10.100.13.0/24`).
 
     ```bash
     nmap -sV <subnet>
@@ -385,19 +392,34 @@ Submit the flag on the platform to complete the exercise.
 
 ## Analysis Questions
 
-??? question "1. What would happen if you placed the DROP rule before the ACCEPT rules?"
+**1. What would happen if you placed the DROP rule before the ACCEPT rules?**
+
+??? note "Reveal Answer"
+
     All traffic would be dropped, including HTTP and HTTPS. Firewalls process rules top to bottom using **first-match-wins**. If the first rule is a blanket DROP with no port or protocol match, it matches every packet before any ACCEPT rule is evaluated. Your ACCEPT rules would exist in the chain but never fire. Rule order is not cosmetic; it determines behavior.
 
-??? question "2. What is the difference between DROP and REJECT?"
+**2. What is the difference between DROP and REJECT?**
+
+??? note "Reveal Answer"
+
     **DROP** silently discards the packet. The sender receives no response and must wait for a timeout (typically 30-60 seconds in TCP). **REJECT** sends an ICMP "port unreachable" or TCP RST back to the sender, immediately telling them the connection was refused. DROP is preferred for external-facing traffic because it reveals less information: an attacker scanning the network cannot distinguish between a dropped port and a host that does not exist. REJECT is sometimes used on internal networks where faster error feedback is more important than stealth.
 
-??? question "3. Why use the FORWARD chain instead of INPUT?"
+**3. Why use the FORWARD chain instead of INPUT?**
+
+??? note "Reveal Answer"
+
     Iptables has three built-in chains for different traffic flows. **INPUT** handles traffic destined for the firewall itself (like your SSH connection on port 22). **OUTPUT** handles traffic originating from the firewall. **FORWARD** handles traffic passing *through* the firewall from one network interface to another. In this exercise, the traffic flows from the Apex dev server through the firewall to the web server, so the FORWARD chain is the correct place to filter it. If you wrote these rules on the INPUT chain, they would affect traffic to the firewall itself (potentially breaking your SSH session) and would not filter traffic between the dev server and web server at all.
 
-??? question "4. The Apex dev server is sending traffic to port 4444. Why is this concerning?"
+**4. The Apex dev server is sending traffic to port 4444. Why is this concerning?**
+
+??? note "Reveal Answer"
+
     Port 4444 is the default port for Metasploit's reverse shell handler (meterpreter). While it is technically possible for a legitimate service to use port 4444, this port is so strongly associated with post-exploitation tools that seeing traffic to it is a significant red flag. Combined with the other suspicious traffic (SSH brute-force attempts on port 22, MySQL probes on 3306, and C2-style callbacks on 8080), the pattern suggests the dev server may be compromised or being used for unauthorized testing beyond the scope of the contract.
 
-??? question "5. Your SSH connection to the firewall still works after adding the DROP rule. Why?"
+**5. Your SSH connection to the firewall still works after adding the DROP rule. Why?**
+
+??? note "Reveal Answer"
+
     Your SSH connection goes to the firewall itself (port 22 on the firewall's IP). That traffic hits the **INPUT** chain, not the FORWARD chain. Your DROP rule is on the FORWARD chain, which only affects traffic passing *through* the firewall to other hosts. Traffic destined for the firewall itself is handled by the INPUT chain, which has its own default ACCEPT policy. Understanding chains matters here: rules on one chain do not affect traffic processed by a different chain.
 
 ---

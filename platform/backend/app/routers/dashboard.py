@@ -1165,11 +1165,13 @@ async def celebration_wall(
             row.achievement_type, custom_defs
         )
         user = row.user
+        name_mode = (getattr(user, "scoreboard_name_mode", None) or "real_name") if user else "real_name"
         recent.append({
             "id": row.id,
             "user_id": row.user_id,
-            "username": user.username if user else None,
-            "display_name": user.display_name if user else None,
+            "username": user.username if user and name_mode != "anonymous" else None,
+            "display_name": user.scoreboard_name if user else None,
+            "name_mode": name_mode,
             "achievement_type": row.achievement_type,
             "label": label,
             "icon": icon,
@@ -1197,10 +1199,12 @@ async def celebration_wall(
         user = row.user
         if user is None:
             continue
+        name_mode = getattr(user, "scoreboard_name_mode", None) or "real_name"
         spotlight.append({
             "user_id": user.id,
-            "username": user.username,
-            "display_name": user.display_name,
+            "username": user.username if name_mode != "anonymous" else None,
+            "display_name": user.scoreboard_name,
+            "name_mode": name_mode,
             "latest_label": label,
             "latest_icon": icon,
             "awarded_at": _iso_utc(row.awarded_at),
@@ -1305,6 +1309,10 @@ async def celebration_wall(
             "unique_badges": my_unique_badges,
             "listed": listed,
             "can_list": can_list,
+            "username": current_user.username,
+            "display_name": current_user.display_name,
+            "scoreboard_name": current_user.scoreboard_name,
+            "name_mode": getattr(current_user, "scoreboard_name_mode", None) or "real_name",
             "recent": my_recent,
         },
     }

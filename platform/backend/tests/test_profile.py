@@ -71,6 +71,49 @@ def test_display_name_accepts_one_name_part():
     assert User(username="solo", last_name="Hopper").display_name == "Hopper"
 
 
+def test_scoreboard_name_modes():
+    user = User(username="ada", first_name="Ada", last_name="Lovelace")
+
+    user.scoreboard_name_mode = "real_name"
+    assert user.scoreboard_name == "Ada Lovelace"
+
+    user.scoreboard_name_mode = "username"
+    assert user.scoreboard_name == "ada"
+
+    user.scoreboard_name_mode = "anonymous"
+    assert user.scoreboard_name == "Anonymous participant"
+
+    # Legacy rows created before the preference existed fall back to the name.
+    user.scoreboard_name_mode = None
+    assert user.scoreboard_name == "Ada Lovelace"
+
+
+def test_scoreboard_name_mode_round_trip(client, auth_headers, test_user):
+    resp = client.put(
+        "/api/auth/settings",
+        json={"scoreboard_name_mode": "anonymous"},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200, resp.text
+
+    settings = client.get("/api/auth/settings", headers=auth_headers)
+    assert settings.status_code == 200
+    assert settings.json()["scoreboard_name_mode"] == "anonymous"
+
+    me = client.get("/api/auth/me", headers=auth_headers)
+    assert me.status_code == 200
+    assert me.json()["scoreboard_name_mode"] == "anonymous"
+
+
+def test_scoreboard_name_mode_rejects_unknown_values(client, auth_headers, test_user):
+    resp = client.put(
+        "/api/auth/settings",
+        json={"scoreboard_name_mode": "stage_name"},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 422
+
+
 def test_profile_names_are_saved_and_returned(client, auth_headers, test_user):
     resp = client.put(
         "/api/auth/settings",

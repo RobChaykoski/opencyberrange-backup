@@ -211,15 +211,21 @@ Enter the flag discovered during technology identification in the format `OCR{__
 
 **1. Why do web servers include version information in the `Server` header by default?**
 
-> The HTTP specification defines the `Server` header as a way for servers to identify themselves. Most web server software includes the version by default for interoperability and debugging purposes. From a security perspective, this is information disclosure: administrators should configure their servers to suppress or minimise version details in production (e.g., `ServerTokens Prod` in Apache).
+??? note "Reveal Answer"
+
+    The HTTP specification defines the `Server` header as a way for servers to identify themselves. Most web server software includes the version by default for interoperability and debugging purposes. From a security perspective, this is information disclosure: administrators should configure their servers to suppress or minimise version details in production (e.g., `ServerTokens Prod` in Apache).
 
 **2. Why is identifying a CMS like WordPress more valuable than identifying just the web server?**
 
-> A CMS identification opens a much larger attack surface. WordPress has known admin panel paths (`/wp-admin`), a plugin ecosystem with frequent vulnerabilities, theme files that may leak information, and predictable file structures. Knowing the CMS version maps to specific CVEs and known exploits. The web server alone tells you far less about the application's vulnerabilities.
+??? note "Reveal Answer"
+
+    A CMS identification opens a much larger attack surface. WordPress has known admin panel paths (`/wp-admin`), a plugin ecosystem with frequent vulnerabilities, theme files that may leak information, and predictable file structures. Knowing the CMS version maps to specific CVEs and known exploits. The web server alone tells you far less about the application's vulnerabilities.
 
 **3. Why should `readme.html` and similar default files be removed from production WordPress installations?**
 
-> Default files like `readme.html` disclose the exact WordPress version, which maps directly to known vulnerabilities. An attacker who reads the readme file can immediately search for exploits targeting that specific version. Removing default files is part of WordPress hardening: it does not fix vulnerabilities, but it removes the information that helps attackers identify them.
+??? note "Reveal Answer"
+
+    Default files like `readme.html` disclose the exact WordPress version, which maps directly to known vulnerabilities. An attacker who reads the readme file can immediately search for exploits targeting that specific version. Removing default files is part of WordPress hardening: it does not fix vulnerabilities, but it removes the information that helps attackers identify them.
 
 ---
 

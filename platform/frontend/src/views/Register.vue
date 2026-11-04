@@ -29,8 +29,8 @@
               This event has finished. You can still create an account and explore the platform.
             </p>
             <p v-if="competition.status !== 'ended'" class="help-text">
-              Your display name appears on the event leaderboard. If you opted out of
-              public scoreboards, you appear as “Anonymous participant”.
+              Your Celebration Wall name preference appears on the event leaderboard:
+              real name, username, or "Anonymous participant".
             </p>
           </div>
 

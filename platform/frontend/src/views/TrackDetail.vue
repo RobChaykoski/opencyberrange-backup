@@ -119,9 +119,9 @@
               :role="(lab.is_unlocked || lab.is_completed) ? 'button' : undefined"
               :tabindex="(lab.is_unlocked || lab.is_completed) ? 0 : undefined"
               :aria-label="(lab.is_unlocked || lab.is_completed) ? `Open details for ${lab.name}` : undefined"
-              @click="(lab.is_unlocked || lab.is_completed) && openActiveLab(lab)"
-              @keydown.enter.self.prevent="(lab.is_unlocked || lab.is_completed) && openActiveLab(lab)"
-              @keydown.space.self.prevent="(lab.is_unlocked || lab.is_completed) && openActiveLab(lab)"
+              @click="(lab.is_unlocked || lab.is_completed) && selectLab(lab)"
+              @keydown.enter.self.prevent="(lab.is_unlocked || lab.is_completed) && selectLab(lab)"
+              @keydown.space.self.prevent="(lab.is_unlocked || lab.is_completed) && selectLab(lab)"
               :style="{ cursor: (lab.is_unlocked || lab.is_completed) ? 'pointer' : 'default' }"
             >
               <div class="lab-row__status">
@@ -232,6 +232,11 @@
                 </button>
               </div>
             </template>
+            <button
+              @click="exitExercise"
+              class="btn btn--secondary btn--sm"
+              title="Return to your current exercise tab; the lab keeps running"
+            >Exit</button>
           </div>
           <div v-if="activeLab.session" class="active-lab-panel__timer-section">
             <div class="active-lab-panel__timer" :class="{ 'timer--warning': isExpiringSoon }">
@@ -247,9 +252,17 @@
               {{ extendingSession ? 'Extending...' : '+1 Hour' }}
             </button>
           </div>
-          <button @click="closeActiveLab" class="close-btn" aria-label="Close exercise panel">
+          <button @click="exitExercise" class="close-btn" aria-label="Exit exercise panel; the lab keeps running">
             <XIcon />
           </button>
+        </div>
+
+        <!-- Context notice (e.g. another exercise is already running) -->
+        <div v-if="panelNotice" class="panel-banner panel-banner--info" role="status">
+          <div class="panel-banner__text">{{ panelNotice }}</div>
+          <div class="panel-banner__actions">
+            <button class="btn btn--secondary btn--sm" @click="panelNotice = ''">Dismiss</button>
+          </div>
         </div>
 
         <!-- Session expiry notice: shown instead of silently closing the panel -->
@@ -647,6 +660,7 @@ const activeCourseId = ref(null)
 // Session expiry + spawn feedback state
 const sessionExpired = ref(false)
 const spawnError = ref('')
+const panelNotice = ref('')
 const spawning = ref(false)
 const spawnElapsed = ref(0)
 let spawnTimerInterval = null
@@ -727,13 +741,19 @@ const retryLaunch = async () => {
   await launchWithImage(null)
 }
 
+// Course context. Everything that leaves an exercise returns to the course's
+// Exercises tab, not to whichever tab happened to be remembered last.
+const courseExercisesLink = computed(() =>
+  activeCourseId.value ? `/courses/${activeCourseId.value}?tab=assignments` : null
+)
+
 // Breadcrumb target: when this track was opened from a course (course_id in the
 // route), "back" returns to that course's exercise list -- NOT the global
 // Exercises dashboard. Mirrors the course-aware navigation in the close/submit
 // handlers below.
 const backLink = computed(() =>
   activeCourseId.value
-    ? { to: `/courses/${activeCourseId.value}`, label: 'Back to course' }
+    ? { to: courseExercisesLink.value, label: 'Back to course' }
     : { to: '/exercises', label: 'Exercises' }
 )
 const activeWikiSlug = ref(null)
@@ -757,6 +777,13 @@ const hasActiveLab = computed(() => {
     level.labs.some(lab => lab.is_active)
   )
 })
+
+const findActiveTrackLab = () => {
+  if (!track.value) return null
+  return track.value.levels
+    .flatMap(level => level.labs)
+    .find(lab => lab.is_active) || null
+}
 
 const timeRemaining = computed(() => {
   const secs = localTimeRemaining.value
@@ -1006,6 +1033,34 @@ const closeActiveLab = () => {
   activeLab.value = null
   sessionExpired.value = false
   spawnError.value = ''
+  panelNotice.value = ''
+}
+
+const focusRunningLab = async (running) => {
+  if (activeLab.value?.lab?.id !== running.id) {
+    await openActiveLab(running)
+  }
+  panelNotice.value = `You already have an active exercise: ${running.name}. Stop it with the button above, or exit this panel and continue it later.`
+}
+
+// Any exercise row/button must keep the student on the running exercise. The
+// backend only allows one active session, so opening another lab panel would
+// just move the stop/exit controls off the exercise that is actually running.
+const selectLab = async (lab) => {
+  const running = findActiveTrackLab()
+  if (running && running.id !== lab.id) {
+    await focusRunningLab(running)
+    return
+  }
+  panelNotice.value = ''
+  await openActiveLab(lab)
+}
+
+const exitExercise = () => {
+  closeActiveLab()
+  if (courseExercisesLink.value) {
+    router.push(courseExercisesLink.value)
+  }
 }
 
 const viewLab = async (lab) => {
@@ -1031,6 +1086,11 @@ const rangeboxImageForLab = (lab) => {
 }
 
 const launchLab = async (lab) => {
+  const running = findActiveTrackLab()
+  if (running && running.id !== lab.id) {
+    await focusRunningLab(running)
+    return
+  }
   const trackSlug = track.value?.slug || route.params.trackSlug
   loading.value = true
   spawnError.value = ''
@@ -1078,6 +1138,11 @@ const launchLab = async (lab) => {
 
 const launchWithImage = async (image) => {
   if (!activeLab.value?.lab?.slug) return
+  const running = findActiveTrackLab()
+  if (running && running.id !== activeLab.value?.lab?.id) {
+    await focusRunningLab(running)
+    return
+  }
   launchingLab.value = true
   launchingImage.value = image
   spawnError.value = ''
@@ -1112,9 +1177,9 @@ const stopLab = async () => {
   try {
     await axios.post('/labs/stop')
     activeLab.value = null
-    // If launched from a course, navigate back to the course page
-    if (activeCourseId.value) {
-      router.push(`/courses/${activeCourseId.value}`)
+    // If launched from a course, navigate back to its Exercises tab
+    if (courseExercisesLink.value) {
+      router.push(courseExercisesLink.value)
       return
     }
     fetchTrack(route.params.trackSlug).catch(err => console.error('Failed to refresh track:', err))
@@ -1222,8 +1287,8 @@ const handleCelebrationClose = () => {
 const handleCelebrationNext = () => {
   const nextLabId = celebrationData.value.nextLabId
   celebrationShow.value = false
-  if (activeCourseId.value) {
-    router.push(`/courses/${activeCourseId.value}`)
+  if (courseExercisesLink.value) {
+    router.push(courseExercisesLink.value)
     return
   }
   if (nextLabId && route.params.trackSlug) {
@@ -1263,8 +1328,8 @@ const submitFlag = async () => {
       // immediately. Waiting used to leave the next lab locked until the
       // delayed refresh landed; a second refresh catches the background
       // session stop (Docker teardown can take a while).
-      if (activeCourseId.value) {
-        pendingCourseRedirect = `/courses/${activeCourseId.value}`
+      if (courseExercisesLink.value) {
+        pendingCourseRedirect = courseExercisesLink.value
       } else {
         activeLab.value = null
         await fetchTrack(route.params.trackSlug)
@@ -1453,7 +1518,13 @@ onMounted(async () => {
 
   if (labId) {
     await openActiveLab({ id: Number(labId) })
-    router.replace({ path: `/exercises/${slug}` })
+    // Keep the course context on the URL so a refresh or a shared link still
+    // knows which course Exercises tab to return to. The one-shot labId is
+    // dropped so reloading the track does not reopen a stale panel.
+    const carried = {}
+    if (route.query.courseId) carried.courseId = route.query.courseId
+    if (route.query.wikiSlug) carried.wikiSlug = route.query.wikiSlug
+    router.replace({ path: `/exercises/${slug}`, query: carried })
   }
 
   timerInterval = setInterval(() => {
@@ -2721,6 +2792,11 @@ watch(timeRemaining, (val) => {
 
 .panel-banner--expired strong {
   color: var(--warning, #f59e0b);
+}
+
+.panel-banner--info {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid var(--accent, #3b82f6);
 }
 
 .panel-banner--error {

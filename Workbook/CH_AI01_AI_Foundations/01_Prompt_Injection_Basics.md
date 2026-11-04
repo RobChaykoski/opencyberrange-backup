@@ -101,11 +101,15 @@ attacker.
 
 ## Analysis Questions
 
-1. Why is a secret in a system prompt still exposed to the model?
-2. What is the difference between a direct question and a prompt injection?
-3. Why does filtering the word "flag" not stop this attack?
-4. Where should an application enforce access to sensitive data?
-5. What would you log to detect this attempt in production?
+**1. Why is a secret in a system prompt still exposed to the model?**
+
+**2. What is the difference between a direct question and a prompt injection?**
+
+**3. Why does filtering the word "flag" not stop this attack?**
+
+**4. Where should an application enforce access to sensitive data?**
+
+**5. What would you log to detect this attempt in production?**
 
 ## Defensive Takeaways
 

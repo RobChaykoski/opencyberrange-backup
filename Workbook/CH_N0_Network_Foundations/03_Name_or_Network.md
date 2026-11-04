@@ -98,12 +98,17 @@ Submit the flag in the platform.
 
 ## Analysis Questions
 
-1. Why did `ping stale.range.local` fail?
-2. What did the TXT record tell you that the A record did not?
-3. If the new name resolved but ping failed, what would you check next?
-4. If ping succeeded but `curl` failed, what would that tell you?
-5. Why is it risky to "fix" a problem before identifying which layer is broken?
-6. What would you tell the user in one sentence?
+**1. Why did `ping stale.range.local` fail?**
+
+**2. What did the TXT record tell you that the A record did not?**
+
+**3. If the new name resolved but ping failed, what would you check next?**
+
+**4. If ping succeeded but `curl` failed, what would that tell you?**
+
+**5. Why is it risky to "fix" a problem before identifying which layer is broken?**
+
+**6. What would you tell the user in one sentence?**
 
 ## A Troubleshooting Checklist
 

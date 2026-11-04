@@ -92,11 +92,15 @@ before publishing a file.
 
 ## Analysis Questions
 
-1. What is the difference between the visible slide and its metadata?
-2. Why is metadata easy to overlook when sharing a file?
-3. Which school projects might accidentally include personal metadata?
-4. How could the DevFest team check files before publishing them?
-5. What would you do if a public file contained a real person's information?
+**1. What is the difference between the visible slide and its metadata?**
+
+**2. Why is metadata easy to overlook when sharing a file?**
+
+**3. Which school projects might accidentally include personal metadata?**
+
+**4. How could the DevFest team check files before publishing them?**
+
+**5. What would you do if a public file contained a real person's information?**
 
 ## Defensive Takeaways
 

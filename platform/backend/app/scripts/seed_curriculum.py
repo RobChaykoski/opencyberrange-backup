@@ -280,8 +280,9 @@ def seed_curriculum():
         levels_updated = 0
         
         for track_data in TRACKS:
-            levels = track_data.pop('levels')
+            levels = track_data.get('levels', [])
             track_slug = track_data['slug']
+            track_payload = {k: v for k, v in track_data.items() if k != 'levels'}
             
             # Check if track exists
             existing_track = db.execute(
@@ -303,7 +304,7 @@ def seed_curriculum():
                             is_active = TRUE
                         WHERE slug = :slug
                     """),
-                    {**track_data, "slug": track_slug}
+                    {**track_payload, "slug": track_slug}
                 )
                 print(f"✓ Updated track: {track_data['name']} (id={track_id})")
                 tracks_updated += 1
@@ -315,7 +316,7 @@ def seed_curriculum():
                         VALUES (:name, :slug, :description, :icon, :color, :sort_order, TRUE)
                         RETURNING id
                     """),
-                    {**track_data, "slug": track_slug}
+                    {**track_payload, "slug": track_slug}
                 )
                 track_id = result.fetchone()[0]
                 print(f"✓ Created track: {track_data['name']} (id={track_id})")

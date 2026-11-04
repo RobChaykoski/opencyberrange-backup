@@ -79,10 +79,13 @@ Submit the decoded marker as the flag.
 
 ## Analysis Questions
 
-1. Why is Modbus risky when exposed to untrusted networks?
-2. What does function code 0x03 return, and how is it different from 0x04?
-3. How is ASCII text commonly stored across Modbus registers?
-4. What defensive controls would you recommend for an OT network?
+**1. Why is Modbus risky when exposed to untrusted networks?**
+
+**2. What does function code 0x03 return, and how is it different from 0x04?**
+
+**3. How is ASCII text commonly stored across Modbus registers?**
+
+**4. What defensive controls would you recommend for an OT network?**
 
 ## Defensive Takeaways
 

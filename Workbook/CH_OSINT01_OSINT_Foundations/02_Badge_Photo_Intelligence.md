@@ -109,12 +109,15 @@ end-of-image marker.
 
 ## Analysis Questions
 
-1. Why does re-saving a PNG in an image editor often destroy an LSB payload?
-2. What is the difference between metadata and pixel data?
-3. How could you detect that an image has been modified without knowing the
-   payload?
-4. Why is PNG a better container than JPEG for exact LSB embedding?
-5. What would you do if a public image contained a real credential?
+**1. Why does re-saving a PNG in an image editor often destroy an LSB payload?**
+
+**2. What is the difference between metadata and pixel data?**
+
+**3. How could you detect that an image has been modified without knowing the payload?**
+
+**4. Why is PNG a better container than JPEG for exact LSB embedding?**
+
+**5. What would you do if a public image contained a real credential?**
 
 ## Defensive Takeaways
 

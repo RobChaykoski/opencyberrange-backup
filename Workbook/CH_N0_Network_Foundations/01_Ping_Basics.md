@@ -4,6 +4,12 @@
     Launch **Can You Reach It? Ping Fundamentals** in the platform before
     starting. Use the target address shown in the exercise.
 
+!!! note "Example IP addresses"
+    The output examples use `10.100.13.10` from the reference lab subnet. The
+    platform assigns each student session its own `/24` and shows it in the
+    **Active Lab View**. If your session uses a different subnet, substitute
+    your address. Static examples are not updated when the range changes.
+
 ## Background
 
 `ping` sends an **ICMP echo request** and waits for an **echo reply**. It is the
@@ -35,7 +41,7 @@ ping -n 4 <host>
 ### Reading the output
 
 ```text
-64 bytes from 10.100.3.10: icmp_seq=1 ttl=64 time=0.42 ms
+64 bytes from 10.100.13.10: icmp_seq=1 ttl=64 time=0.42 ms
 ```
 
 | Field | Meaning |
@@ -97,11 +103,15 @@ Submit the flag in the platform.
 
 ## Analysis Questions
 
-1. What did the ping reply prove?
-2. What did the ping reply **not** prove?
-3. If ping succeeded but the page failed, what would you check next?
-4. If ping failed but the page loaded, what could explain that?
-5. Why might a firewall block ping while allowing HTTP?
+**1. What did the ping reply prove?**
+
+**2. What did the ping reply not prove?**
+
+**3. If ping succeeded but the page failed, what would you check next?**
+
+**4. If ping failed but the page loaded, what could explain that?**
+
+**5. Why might a firewall block ping while allowing HTTP?**
 
 ## Key Takeaways
 

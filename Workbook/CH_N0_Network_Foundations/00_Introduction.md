@@ -5,6 +5,13 @@
     maintainer. Verify every command and flag against the running lab. See
     `BUILD_NOTICE.md` in the repository root for the full disclosure.
 
+!!! note "Example IP addresses"
+    The examples in this chapter use `10.100.13.0/24`, the subnet in the
+    reference setup. The platform assigns each student session its own `/24`
+    and displays it in the **Active Lab View**. If your session uses a
+    different subnet, substitute your address in every command. These static
+    examples are not updated automatically when the range changes.
+
 ## Why Start Here?
 
 Most cybersecurity courses begin with a tool. This one begins with a question:

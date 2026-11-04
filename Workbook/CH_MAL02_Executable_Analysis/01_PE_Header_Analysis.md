@@ -297,21 +297,19 @@ Static triage of the PE format is itself a control:
 - **Containment first.** The host was quarantined before anyone analysed the
   file. Analysis never happens on a live, connected endpoint.
 
-## Analysis Questions:<|end|><|start|>edit to=assistant<|channel|>analysis<|message|>Edited opencyberrange/Workbook/CH_MAL02_Executable_Analysis/01_PE_Header_Analysis.md (1 replacement)<|end|><|start|>Assistant<|channel|>analysis<|message|>Now, let me also address the Juice Shop "tutorial mode" idea minimally: add a guided checklist to the workbook pages? Already the workbook is the guided walkthrough. The Hacking Instructor's value is step-by-step in-app guidance. I think the workbook already serves that. I'll note in the commit that defenses were added.
+## Analysis Questions
 
-Now commit. Let me stage everything and commit.<|end|><|start|>start to=shell<|channel|>analysis <|constrain|>xml<|message|><rfl:parameter name="command">
-cd C:\Users\rob\repos\OpenCyberRange\opencyberrange; git add -A; git status --short | Select-Object -First 40
+**1. Why does the PE signature sit at `e_lfanew` instead of at a fixed offset?**
 
-1. Why does the PE signature sit at `e_lfanew` instead of at a fixed offset?
-2. What does `Machine = 0x14C` tell you about the systems this sample can run
-   on, and what would `0x8664` mean instead?
-3. Why is the COFF timestamp useful even though an attacker can change it?
-4. What is the difference between an RVA and a file offset, and why does the
-   section table matter when converting one to the other?
-5. What does the import of `InternetOpenA` suggest about the sample's intended
-   behaviour, and what would you look for next?
-6. Why is the marker XOR-encoded rather than stored as plaintext, and why does
-   that not stop a determined analyst?
+**2. What does `Machine = 0x14C` tell you about the systems this sample can run on, and what would `0x8664` mean instead?**
+
+**3. Why is the COFF timestamp useful even though an attacker can change it?**
+
+**4. What is the difference between an RVA and a file offset, and why does the section table matter when converting one to the other?**
+
+**5. What does the import of `InternetOpenA` suggest about the sample's intended behaviour, and what would you look for next?**
+
+**6. Why is the marker XOR-encoded rather than stored as plaintext, and why does that not stop a determined analyst?**
 
 ---
 

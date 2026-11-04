@@ -78,6 +78,10 @@ during credential analysis are 230 (User logged in) and 530 (Login incorrect).
 
 ## Walkthrough
 
+!!! note "Download the example capture"
+    You can download a copy of this capture for offline review without the lab:
+    [medical-records-ftp.pcap](captures/medical-records-ftp.pcap).
+
 ### Step 1: Launch the Exercise and Note Your Target IP
 
 Start the lab from the OpenCyberRange platform and note the target IP address
@@ -209,19 +213,23 @@ logging in; follow the TCP stream that contains the successful login.
 **1. The PCAP contains several failed login attempts before the successful one.
 What usernames were tried, and what do they tell you about the attacker?**
 
-> The failed attempts used common/default usernames; admin, root, test, backup,
-> and ftp; all returning response code 530. The pattern is consistent with a
-> brute-force dictionary attack or automated scanning. The successful login used
-> "medrecords," which is specific to this system, suggesting the attacker had
-> prior knowledge of the target or performed reconnaissance beforehand.
+??? note "Reveal Answer"
+
+    The failed attempts used common/default usernames; admin, root, test, backup,
+    and ftp; all returning response code 530. The pattern is consistent with a
+    brute-force dictionary attack or automated scanning. The successful login used
+    "medrecords," which is specific to this system, suggesting the attacker had
+    prior knowledge of the target or performed reconnaissance beforehand.
 
 **2. After logging in, the attacker downloaded `patient_records.db`. How would
 you find all files accessed using tshark?**
 
-> Filter for the RETR command: `tshark -r captures/medical-records-ftp.pcap -Y 'ftp.request.command == "RETR"' -T fields -e ftp.request.arg`. The filter displays the
-> filename for every RETR (file retrieval) command. You can also check for `STOR`
-> (upload), `LIST` (directory listing), and `DELE` (delete) to build a complete
-> picture of the attacker's activity.
+??? note "Reveal Answer"
+
+    Filter for the RETR command: `tshark -r captures/medical-records-ftp.pcap -Y 'ftp.request.command == "RETR"' -T fields -e ftp.request.arg`. The filter displays the
+    filename for every RETR (file retrieval) command. You can also check for `STOR`
+    (upload), `LIST` (directory listing), and `DELE` (delete) to build a complete
+    picture of the attacker's activity.
 
 **3. What protocol should replace FTP for transferring sensitive files?**
 

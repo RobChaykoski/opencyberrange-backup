@@ -105,7 +105,7 @@ Chapter 9 puts these skills to the test in assessment scenarios. You will face n
 
 **2.** CME uses `[+]` (green) to indicate successful authentication and `[-]` (red) to indicate failure. The `[*]` symbol denotes informational messages such as host identification.
 
-**3.** CME supports multiple space-separated IPs (`10.100.1.10 10.100.1.11`), CIDR ranges (`10.100.1.0/24`), and text files containing one target per line. All three formats work with any supported protocol.
+**3.** CME supports multiple space-separated IPs (`10.100.13.10 10.100.13.20`), CIDR ranges (`10.100.13.0/24`), and text files containing one target per line. All three formats work with any supported protocol.
 
 **4.** Credential reuse means a single compromised password grants access to multiple services and hosts. An attacker who obtains credentials from one system can move laterally across the entire infrastructure without needing to crack additional passwords. The blast radius of a single credential compromise expands from one service to every system that shares those credentials.
 

@@ -4,6 +4,12 @@
     Launch **The Internet's Phone Book: DNS Records** in the platform before
     starting. Use the DNS server address shown in the exercise.
 
+!!! note "Example IP addresses"
+    The record examples use `10.100.13.10` from the reference lab subnet. The
+    platform assigns each student session its own `/24` and shows it in the
+    **Active Lab View**. If your session uses a different subnet, substitute
+    your address. Static examples are not updated when the range changes.
+
 ## Background
 
 DNS is the distributed database that maps names to addresses and publishes other
@@ -18,7 +24,7 @@ authoritative server for `range.local`, so you will query it directly.
 
 | Record | Purpose | Example |
 |---|---|---|
-| **A** | Name to IPv4 address | `portal.range.local -> 10.100.3.10` |
+| **A** | Name to IPv4 address | `portal.range.local -> 10.100.13.10` |
 | **AAAA** | Name to IPv6 address | `portal.range.local -> 2001:db8::10` |
 | **CNAME** | Alias to another name | `alias.range.local -> portal.range.local` |
 | **MX** | Mail server for a domain | `range.local -> mail.range.local` |
@@ -105,12 +111,17 @@ The TXT value is the flag. Submit it in the platform.
 
 ## Analysis Questions
 
-1. Why do people use names instead of remembering IP addresses?
-2. What is the difference between an A record and a CNAME?
-3. What does TTL control, and why can a change take time to appear?
-4. Why is DNS a trust boundary?
-5. DNS queries are usually unencrypted. What could an observer learn from them?
-6. What happens if you query the name without `@<target>`?
+**1. Why do people use names instead of remembering IP addresses?**
+
+**2. What is the difference between an A record and a CNAME?**
+
+**3. What does TTL control, and why can a change take time to appear?**
+
+**4. Why is DNS a trust boundary?**
+
+**5. DNS queries are usually unencrypted. What could an observer learn from them?**
+
+**6. What happens if you query the name without `@<target>`?**
 
 ## Key Takeaways
 

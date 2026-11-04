@@ -66,8 +66,12 @@ hints:
       A healthy reply looks like this:
 
       ```
-      64 bytes from 10.100.3.10: icmp_seq=1 ttl=64 time=0.42 ms
+      64 bytes from 10.100.13.10: icmp_seq=1 ttl=64 time=0.42 ms
       ```
+
+      The address above is from the reference `10.100.13.0/24` subnet. Use the
+      address shown in the Active Lab View if your session uses a different
+      subnet; static examples are not updated when the range changes.
 
       - `time=` is the round-trip time. On a local lab network it should be
         small (often under a few milliseconds).

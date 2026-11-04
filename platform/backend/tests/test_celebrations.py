@@ -227,3 +227,50 @@ def test_opted_out_user_keeps_a_private_personal_corner(
     assert body["me"]["can_list"] is True
     assert body["me"]["badge_count"] == 1
     assert body["me"]["recent"][0]["achievement_type"] == "first_blood"
+
+
+def test_wall_can_show_the_username(
+    client, auth_headers, celebration_data, db_session
+):
+    other = celebration_data["other"]
+    other.scoreboard_name_mode = "username"
+    db_session.commit()
+
+    resp = client.get(
+        "/api/dashboard/celebrations?limit=50", headers=auth_headers
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+
+    items = [
+        item for item in body["recent"]
+        if item["user_id"] == other.id
+    ]
+    assert items
+    assert all(item["display_name"] == other.username for item in items)
+    assert all(item["username"] == other.username for item in items)
+    assert all(item["name_mode"] == "username" for item in items)
+
+
+def test_wall_can_show_an_anonymous_name(
+    client, auth_headers, celebration_data, db_session
+):
+    other = celebration_data["other"]
+    other.scoreboard_name_mode = "anonymous"
+    db_session.commit()
+
+    resp = client.get(
+        "/api/dashboard/celebrations?limit=50", headers=auth_headers
+    )
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+
+    items = [
+        item for item in body["recent"]
+        if item["user_id"] == other.id
+    ]
+    assert items
+    assert all(item["display_name"] == "Anonymous participant" for item in items)
+    assert all(item["username"] is None for item in items)
+    assert all(item["name_mode"] == "anonymous" for item in items)
+    assert other.id in {row["user_id"] for row in body["spotlight"]}

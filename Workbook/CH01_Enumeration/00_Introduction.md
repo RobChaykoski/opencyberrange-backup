@@ -1,5 +1,12 @@
 # Chapter 1: Enumeration
 
+!!! note "Example IP addresses"
+    The examples in this chapter use `10.100.13.0/24`, the subnet in the
+    reference setup. The platform assigns each student session its own `/24`
+    and displays it in the **Active Lab View**. If your session uses a
+    different subnet, substitute your address in every command. These static
+    examples are not updated automatically when the range changes.
+
 ## Why Enumeration Comes First
 
 Before you can attack anything, you need to know what is there. Enumeration is the process of systematically discovering what machines are on a network, what ports are open on those machines, what software is listening on those ports, and what operating system is running underneath. Every penetration test; whether it is a classroom exercise or a real-world engagement; starts here.

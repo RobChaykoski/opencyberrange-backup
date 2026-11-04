@@ -50,6 +50,10 @@ The key insight is that attackers must use the network to accomplish their goals
 
 ## Walkthrough
 
+!!! note "Download the example capture"
+    You can download a copy of this capture for offline review without the lab:
+    [full-attack.pcap](captures/full-attack.pcap).
+
 ### Stage 1: Initial Assessment
 
 Before diving into specific attacks, you need to understand what is in the capture. Start with a high-level overview of protocols and hosts. A scope-first overview is the same approach you would take in a real investigation; understand the scope before focusing on details.
@@ -278,19 +282,19 @@ In an incident response report, this timeline is one of the most valuable delive
 
 ## Analysis Questions
 
-**Question 1.** The attack took 3 hours from initial access to data exfiltration. At which stage could the earliest detection have occurred, and how?
+**1. The attack took 3 hours from initial access to data exfiltration. At which stage could the earliest detection have occurred, and how?**
 
 ??? note "Reveal Answer"
 
     Stage 2 (Initial Access); the HTTP download of `system-update.exe` from `malicious-cdn.tk` could have been caught by a web proxy or DNS filtering service blocking known-malicious domains. The `.tk` TLD is frequently associated with malicious activity and is often blocked by default in enterprise environments. Alternatively, Stage 3 (C2) could have been detected by monitoring for HTTPS connections to suspicious TLDs with regular beaconing intervals. Either detection would have prevented the subsequent credential harvesting, lateral movement, and exfiltration.
 
-**Question 2.** The attacker used FTP to exfiltrate data. Why is this unusual for a workstation, and what controls would have caught it?
+**2. The attacker used FTP to exfiltrate data. Why is this unusual for a workstation, and what controls would have caught it?**
 
 ??? note "Reveal Answer"
 
     Normal workstations do not use FTP. An outbound FTP connection from a desktop PC to an external IP address is highly anomalous. A network-based anomaly detection system or a firewall rule blocking outbound FTP from workstation subnets would have prevented the exfiltration entirely. Even a simple egress filtering policy that only allows HTTP, HTTPS, and DNS from workstation VLANs would have stopped this stage of the attack.
 
-**Question 3.** How would you use the IOCs from this analysis to protect other systems on the network?
+**3. How would you use the IOCs from this analysis to protect other systems on the network?**
 
 ??? note "Reveal Answer"
 

@@ -50,6 +50,7 @@ EXPORT_FIELDS = [
     "must_change_password",
     "created_at",
     "show_on_scoreboard",
+    "scoreboard_name_mode",
     "timezone",
     "notification_prefs",
     "login_notifications",

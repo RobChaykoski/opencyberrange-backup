@@ -56,7 +56,7 @@ There is a practical reason this scan requires `sudo`: OS fingerprinting sends *
 **Reading the output:**
 
 ```
-Nmap scan report for 10.100.5.10
+Nmap scan report for 10.100.13.10
 PORT    STATE SERVICE
 139/tcp open  netbios-ssn
 445/tcp open  microsoft-ds

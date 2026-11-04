@@ -232,15 +232,21 @@ Enter the flag from `/private/flag.txt` in the format `OCR{________}` on the lab
 
 **1. Why is a structured workflow better than running tools randomly during reconnaissance?**
 
-> A structured workflow ensures completeness and creates a chain of findings. In this lab, `robots.txt` listed `/private/` as a hidden directory, and `headers.php` confirmed the flag path. Neither finding alone was sufficient: the workflow connected them. Random tool usage risks missing one link in the chain, leaving the high-value finding undiscovered.
+??? note "Reveal Answer"
+
+    A structured workflow ensures completeness and creates a chain of findings. In this lab, `robots.txt` listed `/private/` as a hidden directory, and `headers.php` confirmed the flag path. Neither finding alone was sufficient: the workflow connected them. Random tool usage risks missing one link in the chain, leaving the high-value finding undiscovered.
 
 **2. Why is `robots.txt` not a security mechanism?**
 
-> `robots.txt` is a voluntary protocol. It asks well-behaved crawlers not to index certain paths, but any HTTP client can request those paths directly. Listing a directory in `robots.txt` actually advertises its existence to attackers. In this lab, `robots.txt` was the first clue that `/private/` existed. True access control requires authentication, not crawler directives.
+??? note "Reveal Answer"
+
+    `robots.txt` is a voluntary protocol. It asks well-behaved crawlers not to index certain paths, but any HTTP client can request those paths directly. Listing a directory in `robots.txt` actually advertises its existence to attackers. In this lab, `robots.txt` was the first clue that `/private/` existed. True access control requires authentication, not crawler directives.
 
 **3. Why should each discovered endpoint receive header analysis, not just the main page?**
 
-> Different endpoints return different headers. In this lab, the main page had standard information disclosure, but `/headers.php` contained critical custom headers (`X-Internal-Path`, `X-Flag-Hint`) that pointed directly to the flag. A tester who only analyses headers on the index page misses endpoint-specific findings that may be the most severe.
+??? note "Reveal Answer"
+
+    Different endpoints return different headers. In this lab, the main page had standard information disclosure, but `/headers.php` contained critical custom headers (`X-Internal-Path`, `X-Flag-Hint`) that pointed directly to the flag. A tester who only analyses headers on the index page misses endpoint-specific findings that may be the most severe.
 
 ---
 

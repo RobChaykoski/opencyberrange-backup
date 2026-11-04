@@ -1,5 +1,12 @@
 # Exercise 12.2: Firewall Policy Hardening - Defense in Depth
 
+!!! note "Example IP addresses"
+    The examples in this exercise use `10.100.13.0/24`, the subnet in the
+    reference setup. The platform assigns each student session its own `/24`
+    and displays it in the **Active Lab View**. If your session uses a
+    different subnet, substitute your address in every command. These static
+    examples are not updated automatically when the range changes.
+
 ## Before You Begin
 
 You should have completed Exercise 12.1 (Firewall Fundamentals). Exercise 12.2 builds on the same scenario and topology. You will write iptables rules independently in Phase 1 (reinforcing what you learned), then learn new concepts about policy design and rule order in Phase 2. Your VPN must be connected and your terminal open.
@@ -100,7 +107,7 @@ The rule blocks SSH traffic **only from <subnet>.23** (the Apex dev server). The
 
 | Flag | Purpose | Example |
 |------|---------|---------|
-| `-s <ip>` | Match a single source host | `-s 10.100.2.23` |
+| `-s <ip>` | Match a single source host | `-s 10.100.13.23` |
 | `-s <cidr>` | Match an entire source subnet | `-s 192.168.0.0/24` |
 | (no `-s` flag) | Match any source | Equivalent to `-s 0.0.0.0/0` |
 
@@ -179,7 +186,7 @@ Take note of the dev server's IP address in the output (the source address in ea
 Now block specific suspicious ports from the Apex dev server. Unlike Exercise 12.1 where your rules matched any source, these rules use `-s` to target one specific host.
 
 !!! target "Block suspicious traffic from the Apex dev server"
-    Replace `<apex_ip>` with the dev server's actual IP address from the monitor output (for example, `10.100.2.23`).
+    Replace `<apex_ip>` with the dev server's actual IP address from the monitor output (for example, `10.100.13.23`).
 
     ```bash
     sudo iptables -A FORWARD -s <apex_ip> -p tcp --dport 22 -j DROP
@@ -442,19 +449,34 @@ If all checks pass, the validator displays the flag. Submit it on the platform.
 
 ## Analysis Questions
 
-??? question "1. You wrote four source-specific DROP rules in Phase 1. How many rules does the Phase 2 policy need to achieve the same (or better) protection?"
+**1. You wrote four source-specific DROP rules in Phase 1. How many rules does the Phase 2 policy need to achieve the same (or better) protection?**
+
+??? note "Reveal Answer"
+
     Three. Two ACCEPT rules (ports 80 and 443) plus one DROP-all rule. The default-deny approach is not only simpler (fewer rules to manage), it provides *better* protection because it blocks every port you did not explicitly think of. Phase 1 blocked ports 22, 3306, 4444, and 8080. But what about port 5555? Port 9999? Port 12345? Phase 2 blocks all of them automatically because they are not on the allowlist.
 
-??? question "2. A new contractor joins the project and needs to test against the web server. What changes are needed for each approach?"
+**2. A new contractor joins the project and needs to test against the web server. What changes are needed for each approach?**
+
+??? note "Reveal Answer"
+
     **Phase 1 (source-specific):** You must add four new DROP rules with the new contractor's IP address for every suspicious port. If you miss one port, you have a gap in your defenses. If you forget to add rules entirely, the new contractor has unrestricted access. **Phase 2 (default-deny):** No changes needed whatsoever. The new contractor's HTTP/HTTPS traffic is already allowed by the general ACCEPT rules. All other traffic from the new contractor is already blocked by the general DROP rule. The policy is contractor-agnostic; it protects based on service type, not source identity.
 
-??? question "3. An employee connects a personal laptop to the network and it starts probing ports. Which approach catches this?"
+**3. An employee connects a personal laptop to the network and it starts probing ports. Which approach catches this?**
+
+??? note "Reveal Answer"
+
     Only Phase 2. The Phase 1 rules contain `-s <subnet>.23`, which matches only the Apex dev server's IP. The personal laptop has a different IP address and does not match any DROP rule. Its traffic passes through unblocked. The Phase 2 default-deny policy has no `-s` flag on the DROP rule, so it blocks all unauthorized traffic regardless of source IP. The rogue laptop's SSH probes, MySQL scans, and every other non-HTTP/HTTPS connection attempt would be silently dropped.
 
-??? question "4. Why does the validator reject source-locked ACCEPT rules?"
+**4. Why does the validator reject source-locked ACCEPT rules?**
+
+??? note "Reveal Answer"
+
     A source-locked ACCEPT rule like `iptables -A FORWARD -s <subnet>.23 -p tcp --dport 80 -j ACCEPT` only allows HTTP *from that specific IP*. Combined with a DROP-all rule, this means HTTP from every other source (including legitimate users, other contractors, and internal systems) is blocked. A proper default-deny policy defines what *services* are allowed, not what *sources* are allowed. The security comes from restricting *what kind of traffic* passes through, not *who* sends it. Port filtering is the gatekeeper; source filtering is a secondary tool for specific use cases.
 
-??? question "5. In a production environment, what additional rules might you add to this policy?"
+**5. In a production environment, what additional rules might you add to this policy?**
+
+??? note "Reveal Answer"
+
     Common additions include: DNS (TCP/UDP port 53) so the web server can resolve hostnames; NTP (UDP port 123) for time synchronization, which is critical for TLS certificates and logging; ICMP (ping) for network monitoring and troubleshooting; and possibly SSH (port 22) from a specific management subnet for administration. Each addition should be justified by a documented business need. The principle remains: start with deny-all and add only what is required. Every rule you add is a potential attack surface, so each one should be a deliberate decision, not a convenience.
 
 ---

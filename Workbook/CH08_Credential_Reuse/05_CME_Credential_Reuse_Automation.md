@@ -27,7 +27,7 @@ Manual credential testing; typing a username and password into each service on e
 
 Automation tools like CrackMapExec solve these problems by standardizing the authentication process across protocols and targets. CME sends the same credential pair to every specified host using the correct protocol-specific handshake, captures the result, and reports success or failure with consistent output formatting. A test that takes hours manually completes in seconds with CME.
 
-CME supports multiple target specification formats. You can test a single IP address, a space-separated list of IPs, a Classless Inter-Domain Routing (CIDR) range like `10.100.1.0/24`, or a text file containing one target per line. The file-based approach is particularly useful when your target list comes from an earlier Nmap scan or LDAP enumeration.
+CME supports multiple target specification formats. You can test a single IP address, a space-separated list of IPs, a Classless Inter-Domain Routing (CIDR) range like `10.100.13.0/24`, or a text file containing one target per line. The file-based approach is particularly useful when your target list comes from an earlier Nmap scan or LDAP enumeration.
 
 ```mermaid
 graph LR
@@ -67,9 +67,9 @@ crackmapexec <protocol> <target(s)> -u <username> -p <password> [options]
 
 | Format | Example | Description |
 |--------|---------|-------------|
-| Single IP | `10.100.1.10` | Test one host |
-| Multiple IPs | `10.100.1.10 10.100.1.11` | Space-separated list |
-| CIDR range | `10.100.1.0/24` | Test an entire subnet |
+| Single IP | `10.100.13.10` | Test one host |
+| Multiple IPs | `10.100.13.10 10.100.13.20` | Space-separated list |
+| CIDR range | `10.100.13.0/24` | Test an entire subnet |
 | File | `targets.txt` | One IP per line |
 
 **Key options:**
@@ -95,7 +95,7 @@ CME uses color-coded symbols to indicate results. Understanding these indicators
 A typical successful SMB authentication line looks like the following:
 
 ```
-SMB  10.100.1.10  445  TARGET1  [+] FinanceCorp\admin:password123
+SMB  10.100.13.10  445  TARGET1  [+] FinanceCorp\admin:password123
 ```
 
 The output shows the protocol, target IP, port, hostname, and the result indicator followed by the credential pair that succeeded.

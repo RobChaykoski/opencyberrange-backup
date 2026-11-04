@@ -28,6 +28,14 @@ class User(Base):
     mfa_recovery_codes = Column(Text, nullable=True)
     # Show this user on public scoreboards / leaderboards.
     show_on_scoreboard = Column(Boolean, default=True, server_default=text("true"), nullable=False)
+    # How the user's name appears on public scoreboards / the celebration wall:
+    # "real_name", "username", or "anonymous".
+    scoreboard_name_mode = Column(
+        String(20),
+        default="real_name",
+        server_default=text("'real_name'"),
+        nullable=False,
+    )
     # Trusted devices (JSON list of {id, name, created_at, last_used}).
     trusted_devices = Column(Text, nullable=True)
     # IANA tz name (e.g. "America/Chicago"); null = UTC.
@@ -85,6 +93,21 @@ class User(Base):
             if part and part.strip()
         ]
         return " ".join(parts) if parts else self.username
+
+    @property
+    def scoreboard_name(self):
+        """Name to publish on the celebration wall / leaderboards.
+
+        Users choose between their real name, their login handle, or a neutral
+        anonymous label. Unknown/legacy values fall back to the real name so a
+        missing migration cannot hide everyone.
+        """
+        mode = getattr(self, "scoreboard_name_mode", None) or "real_name"
+        if mode == "anonymous":
+            return "Anonymous participant"
+        if mode == "username":
+            return self.username
+        return self.display_name
 
     # Relationships
     sessions = relationship("LabSession", back_populates="user", foreign_keys="[LabSession.user_id]")

@@ -57,6 +57,10 @@ this exercise differs from Exercise 1.3 in a critical way. Exercise 1.3 identifi
 
 ## Walkthrough
 
+!!! note "Download the example capture"
+    You can download a copy of this capture for offline review without the lab:
+    [dns-tunnel.pcap](captures/dns-tunnel.pcap).
+
 ### Step 1: Launch the Exercise
 
 Start the lab environment from the OpenCyberRange launcher. Wait for the container status to show as running before proceeding. this exercise uses a single container that provides SSH access to the analysis environment.

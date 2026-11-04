@@ -90,6 +90,10 @@ tshark -r capture.pcap -q -z follow,tcp,ascii,0
 
 ## Walkthrough
 
+!!! note "Download the example capture"
+    If you want to review the traffic locally without the lab, download the
+    example capture: [capture.pcap](captures/capture.pcap).
+
 ### Step 1: Launch the Exercise
 
 In the Open Cyber Range interface, navigate to **Network -> Level 1 -> HTTP Traffic Analysis** and start the lab. Wait until the status indicator shows **Running**, then note the target IP displayed on the lab page. You will substitute this value wherever you see `<target_ip>` in the commands below.

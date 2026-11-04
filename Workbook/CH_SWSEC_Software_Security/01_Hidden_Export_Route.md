@@ -86,11 +86,15 @@ the server and remove secrets from client-side code.
 
 ## Analysis Questions
 
-1. Why is a hidden route not the same as an authorized route?
-2. What could an attacker do with the token if it were a real API key?
-3. Why can a disabled button be bypassed?
-4. Where should the authorization check live?
-5. What would you search for in a front-end bundle during a code review?
+**1. Why is a hidden route not the same as an authorized route?**
+
+**2. What could an attacker do with the token if it were a real API key?**
+
+**3. Why can a disabled button be bypassed?**
+
+**4. Where should the authorization check live?**
+
+**5. What would you search for in a front-end bundle during a code review?**
 
 ## Defensive Takeaways
 

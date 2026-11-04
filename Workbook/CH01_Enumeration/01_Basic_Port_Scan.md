@@ -53,7 +53,7 @@ By default, Nmap scans the **1,000 most common ports** (out of 65,535 total). Th
 
 ```
 Starting Nmap 7.94 ( https://nmap.org )
-Nmap scan report for 10.100.5.10
+Nmap scan report for 10.100.13.10
 Host is up (0.0032s latency).
 Not shown: 997 closed ports
 PORT    STATE SERVICE

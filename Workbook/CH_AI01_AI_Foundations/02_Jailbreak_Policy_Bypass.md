@@ -86,11 +86,15 @@ attacker also supplies a new instruction.
 
 ## Analysis Questions
 
-1. Why does removing a blocked word not make the request safe?
-2. What authority did the request claim, and why did that matter?
-3. How would external authorisation have stopped this attack?
-4. Why is role-play a recurring jailbreak technique?
-5. What telemetry would reveal a policy bypass attempt?
+**1. Why does removing a blocked word not make the request safe?**
+
+**2. What authority did the request claim, and why did that matter?**
+
+**3. How would external authorisation have stopped this attack?**
+
+**4. Why is role-play a recurring jailbreak technique?**
+
+**5. What telemetry would reveal a policy bypass attempt?**
 
 ## Defensive Takeaways
 

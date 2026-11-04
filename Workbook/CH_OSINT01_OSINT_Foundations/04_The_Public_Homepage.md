@@ -95,13 +95,15 @@ head, and search for identifiers that should not be there.
 
 ## Analysis Questions
 
-1. Why is a `meta` tag a good place for a deliberate OSINT clue?
-2. What kinds of real secrets are sometimes leaked in page metadata?
-3. How would you archive the page so the finding is reproducible after the
-   site changes?
-4. What is the difference between viewing the rendered page and viewing the
-   source?
-5. How would you report a real metadata leak without publishing the secret?
+**1. Why is a `meta` tag a good place for a deliberate OSINT clue?**
+
+**2. What kinds of real secrets are sometimes leaked in page metadata?**
+
+**3. How would you archive the page so the finding is reproducible after the site changes?**
+
+**4. What is the difference between viewing the rendered page and viewing the source?**
+
+**5. How would you report a real metadata leak without publishing the secret?**
 
 ## Defensive Takeaways
 

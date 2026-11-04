@@ -206,8 +206,8 @@
         <p class="privacy-note">
           Joining is optional. You can practise the exercises without joining and
           nothing is published until you choose to join. Joining shows your display
-          name on this event leaderboard; if you opted out of public scoreboards,
-          you appear as “Anonymous participant”. You can leave at any time.
+          name on this event leaderboard using the preference from your
+          Celebration Wall: real name, username, or “Anonymous participant”. You can leave at any time.
         </p>
         <p v-if="actionError" class="form-error" role="alert">{{ actionError }}</p>
 

@@ -60,16 +60,21 @@ ping -n 4 <target>
 
 Replace `<target>` with the portal address shown in the exercise.
 
+> **Note:** The output below uses `10.100.13.10` from the reference lab
+> subnet. Your session may use a different `/24`; use the target address shown
+> in the **Active Lab View**. Static examples are not updated when the range
+> changes.
+
 **Expected output (Linux):**
 
 ```
-PING 10.100.3.10 (10.100.3.10) 56(84) bytes of data.
-64 bytes from 10.100.3.10: icmp_seq=1 ttl=64 time=0.42 ms
-64 bytes from 10.100.3.10: icmp_seq=2 ttl=64 time=0.38 ms
-64 bytes from 10.100.3.10: icmp_seq=3 ttl=64 time=0.40 ms
-64 bytes from 10.100.3.10: icmp_seq=4 ttl=64 time=0.41 ms
+PING 10.100.13.10 (10.100.13.10) 56(84) bytes of data.
+64 bytes from 10.100.13.10: icmp_seq=1 ttl=64 time=0.42 ms
+64 bytes from 10.100.13.10: icmp_seq=2 ttl=64 time=0.38 ms
+64 bytes from 10.100.13.10: icmp_seq=3 ttl=64 time=0.40 ms
+64 bytes from 10.100.13.10: icmp_seq=4 ttl=64 time=0.41 ms
 
---- 10.100.3.10 ping statistics ---
+--- 10.100.13.10 ping statistics ---
 4 packets transmitted, 4 received, 0% packet loss, time 3004ms
 rtt min/avg/max/mdev = 0.380/0.402/0.420/0.015 ms
 ```

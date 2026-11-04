@@ -14,3 +14,7 @@
 *.example text eol=lf
 Dockerfile text eol=lf
 *.conf text eol=lf
+
+# Packet captures are binary examples shipped with the workbook.
+*.pcap binary
+*.pcapng binary

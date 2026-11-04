@@ -142,6 +142,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN DEFAULT 
 
 -- Add role column for RBAC (student/instructor/admin)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'student' NOT NULL;
+
+-- Celebration wall / scoreboard name preference
+ALTER TABLE users ADD COLUMN IF NOT EXISTS scoreboard_name_mode VARCHAR(20) DEFAULT 'real_name' NOT NULL;
 -- Backfill: existing admins get role='admin'
 UPDATE users SET role = 'admin' WHERE is_admin = TRUE AND role = 'student';
 -- Backfill: ensure consistency

@@ -215,15 +215,21 @@ Close any browser tabs open to the target. You have completed the directory enum
 
 **1. Why do web applications have directories that are not linked from the main page?**
 
-> Web applications accumulate directories over time: admin panels for management, backup directories from maintenance, development paths from testing, and configuration directories from deployment. Developers and administrators create these for operational reasons. Without a deliberate cleanup process, they persist on production servers even when they are no longer needed.
+??? note "Reveal Answer"
+
+    Web applications accumulate directories over time: admin panels for management, backup directories from maintenance, development paths from testing, and configuration directories from deployment. Developers and administrators create these for operational reasons. Without a deliberate cleanup process, they persist on production servers even when they are no longer needed.
 
 **2. What is the difference between a 403 and a 404 response during directory enumeration?**
 
-> A 403 Forbidden response confirms the directory exists but access is denied. A 404 Not Found response means the path does not exist on the server. From an attacker's perspective, 403 is more valuable: it confirms a target that may be accessible through other means (credential discovery, parameter manipulation, or misconfiguration exploitation).
+??? note "Reveal Answer"
+
+    A 403 Forbidden response confirms the directory exists but access is denied. A 404 Not Found response means the path does not exist on the server. From an attacker's perspective, 403 is more valuable: it confirms a target that may be accessible through other means (credential discovery, parameter manipulation, or misconfiguration exploitation).
 
 **3. Why should you scan with file extensions in addition to directory names?**
 
-> Directory scans alone miss files within discovered directories. A file like `flag.txt` inside `/admin/` will not appear in a directory-only scan. Adding extensions with `-x` tests for files at every path level, catching sensitive documents that directory enumeration alone overlooks.
+??? note "Reveal Answer"
+
+    Directory scans alone miss files within discovered directories. A file like `flag.txt` inside `/admin/` will not appear in a directory-only scan. Adding extensions with `-x` tests for files at every path level, catching sensitive documents that directory enumeration alone overlooks.
 
 ---
 

@@ -43,8 +43,12 @@ hints:
       **What DNS does**
 
       DNS turns a human-readable name such as `portal.range.local` into an IP
-      address such as `10.100.3.10`. Think of it as the internet's phone book:
+      address such as `10.100.13.10`. Think of it as the internet's phone book:
       people use names, computers use addresses.
+
+      The address above is from the reference `10.100.13.0/24` subnet. Use the
+      address shown in the Active Lab View if your session uses a different
+      subnet; static examples are not updated when the range changes.
 
       Common record types:
 

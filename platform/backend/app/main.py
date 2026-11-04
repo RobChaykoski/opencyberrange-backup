@@ -190,6 +190,16 @@ async def lifespan(app: FastAPI):
             conn.commit()
             logger.info("Added avatar_data column to users table")
 
+        # --- Celebration wall / scoreboard name preference ---
+        users_columns = [c['name'] for c in inspector.get_columns('users')]
+        if 'scoreboard_name_mode' not in users_columns:
+            conn.execute(text(
+                "ALTER TABLE users ADD COLUMN scoreboard_name_mode "
+                "VARCHAR(20) DEFAULT 'real_name' NOT NULL"
+            ))
+            conn.commit()
+            logger.info("Added scoreboard_name_mode column to users table")
+
         # --- Lab visibility lifecycle: add 'visibility' and 'created_by' to labs ---
         # Re-read labs columns after potential earlier migrations
         labs_columns = [c['name'] for c in inspector.get_columns('labs')]

@@ -199,15 +199,21 @@ Enter the flag discovered during HTTP method enumeration in the format `OCR{____
 
 **1. Why is an unauthenticated PUT method that creates files particularly dangerous?**
 
-> PUT with file creation allows an attacker to write arbitrary content to the web server. The most critical risk is uploading a web shell, a small script (often PHP) that gives the attacker command execution on the server. Even without a web shell, an attacker could upload phishing pages, deface the site, or store malicious content. The `/uploads/` directory in this lab was writable by the web server (chmod 777), compounding the risk.
+??? note "Reveal Answer"
+
+    PUT with file creation allows an attacker to write arbitrary content to the web server. The most critical risk is uploading a web shell, a small script (often PHP) that gives the attacker command execution on the server. Even without a web shell, an attacker could upload phishing pages, deface the site, or store malicious content. The `/uploads/` directory in this lab was writable by the web server (chmod 777), compounding the risk.
 
 **2. Why should TRACE be disabled on production servers?**
 
-> TRACE echoes the complete HTTP request back to the client, including all headers. If an attacker can trigger a TRACE request via XSS, the response will contain authentication cookies and authorisation headers that the browser normally protects from JavaScript access. The technique is called a cross-site tracing (XST) attack.
+??? note "Reveal Answer"
+
+    TRACE echoes the complete HTTP request back to the client, including all headers. If an attacker can trigger a TRACE request via XSS, the response will contain authentication cookies and authorisation headers that the browser normally protects from JavaScript access. The technique is called a cross-site tracing (XST) attack.
 
 **3. A server returns 401 Unauthorized for a DELETE request. Is that safer than returning 405 Method Not Allowed?**
 
-> A 401 response means the method is enabled but requires authentication. A 405 response means the method is not supported at all. From a security standpoint, 405 is safer: the capability does not exist. With 401, the attacker knows the method works and only needs to find valid credentials. Disabling unnecessary methods is always more secure than relying on authentication to gate them.
+??? note "Reveal Answer"
+
+    A 401 response means the method is enabled but requires authentication. A 405 response means the method is not supported at all. From a security standpoint, 405 is safer: the capability does not exist. With 401, the attacker knows the method works and only needs to find valid credentials. Disabling unnecessary methods is always more secure than relying on authentication to gate them.
 
 ---
 

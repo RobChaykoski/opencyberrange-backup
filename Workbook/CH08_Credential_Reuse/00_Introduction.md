@@ -1,5 +1,12 @@
 # Chapter 8: Credential Reuse
 
+!!! note "Example IP addresses"
+    The examples in this chapter use `10.100.13.0/24`, the subnet in the
+    reference setup. The platform assigns each student session its own `/24`
+    and displays it in the **Active Lab View**. If your session uses a
+    different subnet, substitute your address in every command. These static
+    examples are not updated automatically when the range changes.
+
 ## What Is Credential Reuse?
 
 People reuse passwords. A system administrator might set the same password on an SMB (Server Message Block) share, an RDP (Remote Desktop Protocol) login, and an SSH (Secure Shell) account; either out of convenience or because one set of credentials was copied across services during setup. Credential reuse is the practice of taking a username and password discovered on one service and testing them against every other service on the network to see where else they work.
