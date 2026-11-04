@@ -544,7 +544,7 @@ services:
       - ./db/ensure-db-password.sh:/usr/local/bin/ensure-db-password.sh:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-labuser}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-labuser} -d ${POSTGRES_DB:-labdb}"]
       interval: 10s
       timeout: 5s
       retries: 5

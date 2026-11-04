@@ -22,7 +22,7 @@ set -e
 (
     # Wait for PostgreSQL to accept connections
     for i in $(seq 1 30); do
-        if pg_isready -U "${POSTGRES_USER:-labuser}" >/dev/null 2>&1; then
+        if pg_isready -U "${POSTGRES_USER:-labuser}" -d "${POSTGRES_DB:-labdb}" >/dev/null 2>&1; then
             # Escape single quotes in the password for SQL safety
             ESCAPED_PASSWORD=$(printf '%s' "$POSTGRES_PASSWORD" | sed "s/'/''/g")
 

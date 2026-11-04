@@ -33,7 +33,7 @@ echo ""
 # Wait for database to be ready
 echo "Waiting for database to be ready..."
 for i in {1..30}; do
-    if docker compose exec -T db pg_isready -U labuser > /dev/null 2>&1; then
+    if docker compose exec -T db pg_isready -U labuser -d labdb > /dev/null 2>&1; then
         break
     fi
     sleep 1
