@@ -653,7 +653,7 @@ tshark -r capture.pcap -Y "http.request" \
 
 ### Practice
 - [Malware-Traffic-Analysis.net](https://www.malware-traffic-analysis.net/) - Practice PCAPs
-- [PacketTotal](https://packettotal.com/) - Online PCAP analysis
+- [Wireshark Sample Captures](https://wiki.wireshark.org/SampleCaptures) - Public PCAP analysis examples
 - [CloudShark](https://www.cloudshark.org/captures) - Public packet captures
 
 ## Conclusion

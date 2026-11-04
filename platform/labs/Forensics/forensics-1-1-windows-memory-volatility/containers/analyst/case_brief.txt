@@ -1,0 +1,33 @@
+MEMORY FORENSICS CASE #MF-2026-014
+==================================
+
+SYSTEM
+  A Windows Server 2008 training VM was captured before the machine was
+  rebuilt. The memory image and the matching Volatility symbol file are on
+  this analyst workstation.
+
+EVIDENCE
+  /home/analyst/evidence/memdump.mem
+  /home/analyst/symbols/windows/ntkrpamp.pdb/
+
+TOOLS
+  volatility3 (the `vol` command), Python 3, standard Linux text tools.
+
+OBJECTIVES
+  1. Identify the operating system and build from the memory image.
+  2. List the processes that were running when the image was captured.
+  3. Extract the local account hashes from the registry in memory.
+  4. Find the `student` account and record the first 8 characters of its
+     NTLM hash.
+  5. Assemble the training flag as OCR{<first 8 characters>}.
+
+NOTES
+  - The image is read-only evidence. Do not modify it.
+  - The symbol file is already installed; point Volatility at
+    /home/analyst/symbols.
+  - This is a training image. The accounts and hashes are not real
+    production credentials.
+
+ATTRIBUTION
+  Memory image: Sam Bowne, samsclass.info (Windows Server 2008 memory
+  analysis exercise). Used here for isolated classroom training.

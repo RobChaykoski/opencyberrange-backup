@@ -1,0 +1,90 @@
+name: "RangeBox Log Detective"
+description: "Read a small web server access log, spot the probing requests, and recover the training token from the one request that should never have succeeded."
+difficulty: beginner
+category: network
+duration_minutes: 20
+visibility: public
+flag: "OCR{l0gs_t3ll_th3_st0ry}"
+
+tools:
+  - rangebox
+  - browser
+  - terminal
+
+objectives:
+  - Read a web server access log
+  - Compare successful and failed requests
+  - Spot a repeated source address probing for admin pages
+  - Recover the training token and explain the evidence
+
+scenario: |
+  A classroom web service keeps a short access log. Most of the entries are
+  ordinary page views from the practice network. A few requests stand out:
+  repeated failures from one address, followed by a request with an unusual
+  query string.
+
+  You will read the log, separate normal traffic from probing, and explain what
+  the evidence shows. This is defensive work: you are not attacking the service,
+  you are interpreting what it already recorded.
+
+  The service and the log are fictional and isolated.
+
+workbook: "wiki/range/high-school/CH_HS11_Grade_11_Defensive_Security/01_Log_Detective/"
+
+hostnames:
+  - ip_offset: "95"
+    hostname: "logs.lab"
+    description: "RangeBox log-analysis target (HTTP 8080)"
+
+topology:
+  nodes:
+    - id: "logs"
+      label: "RangeBox log-analysis target"
+      type: "server"
+      ip_offset: "95"
+      ports: [8080]
+      services: ["http"]
+      x: 1
+      y: 1
+
+hints:
+  - text: |
+      Launch RangeBox and open the lab browser or a terminal. Fetch the log:
+
+      curl http://logs.lab:8080/access.log
+    unlock_after_minutes: 0
+
+  - text: |
+      A web access log records the source address, time, request, status code,
+      response size, and user agent. Start by looking at the status codes.
+
+      Most normal requests return **200**. Requests that were not found return
+      **404**.
+    unlock_after_minutes: 6
+
+  - text: |
+      Filter the log to show only the failed requests:
+
+      grep " 404 " access.log
+
+      Notice which source address appears repeatedly and what paths it tried.
+    unlock_after_minutes: 12
+
+  - text: |
+      One request from that same source address returned **200** instead of
+      **404**. It carries a training token in the query string.
+
+      Collect the token in `OCR{...}` format and submit it as the flag.
+    unlock_after_minutes: 18
+
+test:
+  steps:
+    - name: "Access log responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.logs}:8080/access.log"
+      expect: "200"
+      timeout: 20
+
+    - name: "Log contains the training token"
+      command: "curl -s http://{target.logs}:8080/access.log | grep -o 'OCR{l0gs_t3ll_th3_st0ry}'"
+      expect: "OCR{l0gs_t3ll_th3_st0ry}"
+      timeout: 20

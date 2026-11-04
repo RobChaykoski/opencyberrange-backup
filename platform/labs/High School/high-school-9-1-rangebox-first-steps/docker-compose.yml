@@ -1,0 +1,32 @@
+services:
+  portal:
+    mem_limit: 128m
+    cpus: 0.15
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+    build:
+      context: ../_shared
+      dockerfile: Dockerfile
+    hostname: rangebox-basics
+    labels:
+      ip_offset: "91"
+    environment:
+      LAB_MODE: "welcome"
+      FLAG: "OCR{r4ng3b0x_f1rst_st3ps}"
+      TITLE: "RangeBox First Steps"
+      HOST_LABEL: "rangebox.lab"
+      PORT: "8080"
+    read_only: true
+    tmpfs:
+      - /tmp:size=8m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped

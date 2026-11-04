@@ -87,11 +87,11 @@ The installer runs preflight checks and installs Docker Engine and Docker Compos
 Clone the repository into a directory named `opencyberrange`. The runtime directory and the helper scripts both assume that name.
 
 ```bash
-git clone https://github.com/syntaxoverride/opencyberrange.git
+git clone https://github.com/RobChaykoski/opencyberrange.git
 cd opencyberrange
 ```
 
 The runtime directory is `~/opencyberrange`. Deployment scripts live in the repository root under `scripts/`.
 
 !!! tip "Next step"
-    For a classroom on one LAN, go to [Local Deployment](02_Local_Deployment.md). For an internet-reachable range, go to [Cloud Deployment](03_Cloud_Deployment.md).
+    For a classroom on one LAN, go to [Local Deployment](02_Local_Deployment.md). For an internet-reachable range, go to [Cloud Deployment](03_Cloud_Deployment.md). For a direct Compose deployment, use the [Docker Compose Deployment Manual](08_Docker_Deploy_Manual.md).

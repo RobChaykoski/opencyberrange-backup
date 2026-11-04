@@ -1,5 +1,9 @@
 # Cloud Deployment
 
+!!! tip "Direct Docker Compose path"
+    See the [Docker Compose Deployment Manual](08_Docker_Deploy_Manual.md) for
+    a command-by-command deployment without the installer.
+
 You install OpenCyberRange on an internet-reachable host so students connect from anywhere. The install uses the same script as a local deployment, but you choose the internet scenario, open ports in the provider firewall, and pick a TLS strategy.
 
 !!! note "Not yet verified on a cloud provider"

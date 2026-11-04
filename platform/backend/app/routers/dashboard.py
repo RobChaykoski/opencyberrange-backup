@@ -7,7 +7,7 @@ import io
 import json
 import logging
 from datetime import datetime, timezone, timedelta
-from zoneinfo import ZoneInfo
+from app.timezones import resolve_timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -34,7 +34,8 @@ from app.services.achievements import (
 )
 from app.services.pdf_report import generate_dashboard_report
 
-REPORT_LOCAL_TZ = ZoneInfo("America/Chicago")
+# Report timestamps render in the requesting instructor's timezone, falling
+# back to UTC for legacy accounts.
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -456,6 +457,8 @@ async def instructor_report(
     if fmt not in ("pdf", "csv"):
         raise HTTPException(status_code=400, detail="format must be 'pdf' or 'csv'")
 
+    local_tz = resolve_timezone(getattr(current_user, "timezone", None))
+
     # Parse range (default last 24 h)
     now = datetime.now(timezone.utc)
     try:
@@ -511,8 +514,8 @@ async def instructor_report(
 
     filters = {
         "range_label": range_label or f"{range_start.isoformat()} to {range_end.isoformat()}",
-        "start_local": range_start.astimezone(REPORT_LOCAL_TZ).strftime("%Y-%m-%d %H:%M"),
-        "end_local": range_end.astimezone(REPORT_LOCAL_TZ).strftime("%Y-%m-%d %H:%M"),
+        "start_local": range_start.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
+        "end_local": range_end.astimezone(local_tz).strftime("%Y-%m-%d %H:%M"),
         "scope_label": scope_label,
         "course_code": course.code if course else None,
     }
@@ -620,7 +623,7 @@ async def instructor_report(
     pulse = list(bucket_data.values())
 
     # ── Build filename ───────────────────────────────────────
-    stamp = datetime.now(REPORT_LOCAL_TZ).strftime("%Y%m%d_%H%M")
+    stamp = datetime.now(local_tz).strftime("%Y%m%d_%H%M")
     name_parts = ["ops_report", stamp]
     if course:
         name_parts.append(course.code.replace(" ", "_"))
@@ -636,6 +639,7 @@ async def instructor_report(
             pulse=pulse,
             pulse_granularity=trunc_unit,
             events=events,
+            timezone_name=getattr(current_user, "timezone", None),
         )
         return Response(
             content=bytes(pdf_bytes),
@@ -649,7 +653,7 @@ async def instructor_report(
     writer.writerow(["# OpenCyberRange Ops Center Report"])
     writer.writerow(["# Scope", scope_label])
     writer.writerow(["# Range", filters["range_label"]])
-    writer.writerow(["# Window (CT)", f"{filters['start_local']} to {filters['end_local']}"])
+    writer.writerow(["# Window (local)", f"{filters['start_local']} to {filters['end_local']}"])
     writer.writerow([])
 
     if student_detail:
@@ -677,13 +681,13 @@ async def instructor_report(
     writer.writerow([])
 
     writer.writerow(["# Activity Log"])
-    writer.writerow(["time_ct", "user", "role", "event", "target", "detail"])
+    writer.writerow(["time_local", "user", "role", "event", "target", "detail"])
     for e in events:
         ts = e["created_at"]
         if isinstance(ts, datetime):
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
-            ts_str = ts.astimezone(REPORT_LOCAL_TZ).strftime("%Y-%m-%d %H:%M:%S")
+            ts_str = ts.astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
         else:
             ts_str = str(ts or "")
         writer.writerow([

@@ -55,6 +55,23 @@ def test_token_grants_access_to_me_endpoint(client, auth_headers, test_user):
     assert resp.json()["username"] == test_user.username
 
 
+def test_login_and_me_expose_user_timezone(client, db_session, test_user, test_password):
+    test_user.timezone = "America/New_York"
+    db_session.commit()
+
+    login = client.post(
+        "/api/auth/login",
+        data={"username": test_user.username, "password": test_password},
+    )
+    assert login.status_code == 200, login.text
+    assert login.json()["user"]["timezone"] == "America/New_York"
+
+    headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
+    me = client.get("/api/auth/me", headers=headers)
+    assert me.status_code == 200
+    assert me.json()["timezone"] == "America/New_York"
+
+
 def test_legacy_bcrypt_hash_is_upgraded_on_login(client, db_session, test_user, test_password):
     """Accounts created before the Argon2 migration keep working and rehash."""
     import bcrypt

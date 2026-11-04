@@ -544,4 +544,4 @@ To continue building your skills:
 - [SANS: Detecting DNS Tunneling](https://www.sans.org/white-papers/)
 - [Cisco: DNS Security](https://umbrella.cisco.com/blog/dns-security)
 - [MITRE ATT&CK: T1071.004 - Application Layer Protocol: DNS](https://attack.mitre.org/techniques/T1071/004/)
-- [Palo Alto Networks: DNS Tunneling Detection](https://www.paloaltonetworks.com/cyberpedia/dns-tunneling)
+- [Palo Alto Networks: DNS Tunneling Detection](https://www.paloaltonetworks.com/cyberpedia/what-is-dns-tunneling)

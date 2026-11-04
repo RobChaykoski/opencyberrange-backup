@@ -1222,7 +1222,7 @@ async def class_report(
     course_dict = _build_course_dict(course)
     students_data = _build_all_students_data(db, course)
 
-    pdf_bytes = generate_class_report(course_dict, students_data)
+    pdf_bytes = generate_class_report(course_dict, students_data, current_user.timezone)
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",
@@ -1265,7 +1265,7 @@ async def student_report(
         "email": student.email,
     }
 
-    pdf_bytes = generate_student_report(student_dict, course_dict, lab_scores, achievements)
+    pdf_bytes = generate_student_report(student_dict, course_dict, lab_scores, achievements, current_user.timezone)
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
         media_type="application/pdf",
@@ -1746,7 +1746,7 @@ async def assignment_class_report(
             s for s in entry["lab_scores"] if s.get("lab_id") in assignment_lab_ids
         ]
 
-    pdf_bytes = generate_class_report(course_dict, all_data)
+    pdf_bytes = generate_class_report(course_dict, all_data, current_user.timezone)
     safe_name = assignment.name.replace(" ", "_")[:30]
     return StreamingResponse(
         io.BytesIO(pdf_bytes),
@@ -1804,7 +1804,7 @@ async def assignment_student_report(
         "student_id": student.student_id,
         "email": student.email,
     }
-    pdf_bytes = generate_student_report(student_dict, course_dict, lab_scores, achievements)
+    pdf_bytes = generate_student_report(student_dict, course_dict, lab_scores, achievements, current_user.timezone)
     safe_name = assignment.name.replace(" ", "_")[:30]
     return StreamingResponse(
         io.BytesIO(pdf_bytes),

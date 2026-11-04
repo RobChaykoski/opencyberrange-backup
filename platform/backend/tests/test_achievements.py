@@ -346,3 +346,117 @@ def test_global_achievement_without_course(
             CustomAchievement.id == definition.id
         ).delete()
         db_session.commit()
+
+
+@pytest.mark.parametrize(
+    "slug,expected",
+    [
+        (
+            "forensics-1-1-windows-memory-volatility",
+            {"memory_miner", "ghost_in_the_ram"},
+        ),
+        (
+            "forensics-2-1-voip-call-reconstruction",
+            {"voice_from_the_wire", "sip_whisperer"},
+        ),
+        ("high-school-9-1-rangebox-first-steps", {"rangebox_rookie"}),
+        ("high-school-9-2-rangebox-file-hunt", {"file_hunter"}),
+        ("high-school-10-1-rangebox-network-basics", {"header_hunter"}),
+        ("high-school-10-2-rangebox-browser-and-source", {"source_sleuth"}),
+        ("high-school-11-1-rangebox-log-detective", {"log_detective"}),
+    ],
+)
+def test_new_lab_badges_awarded(
+    client,
+    auth_headers,
+    test_user,
+    test_lab,
+    test_flag,
+    osint_course,
+    db_session,
+    slug,
+    expected,
+):
+    test_lab.slug = slug
+    db_session.commit()
+    _submit_flag(client, auth_headers, test_lab, test_flag)
+
+    db_session.expire_all()
+    awarded = {
+        row.achievement_type
+        for row in db_session.query(Achievement).filter(
+            Achievement.user_id == test_user.id,
+            Achievement.course_id == osint_course["course"].id,
+        ).all()
+    }
+    assert expected.issubset(awarded)
+
+
+def test_collection_badges_for_new_tracks(
+    client, auth_headers, test_user, test_lab, test_flag, osint_course, db_session
+):
+    """Complete every RangeBox basics and Forensics lab to earn both collections."""
+    import hashlib
+
+    from app.models import FlagAttempt, LabCompletion
+
+    rangebox_slugs = (
+        "high-school-9-1-rangebox-first-steps",
+        "high-school-9-2-rangebox-file-hunt",
+        "high-school-10-1-rangebox-network-basics",
+        "high-school-10-2-rangebox-browser-and-source",
+    )
+    forensics_slugs = (
+        "forensics-1-1-windows-memory-volatility",
+        "forensics-2-1-voip-call-reconstruction",
+    )
+    extra_slugs = rangebox_slugs[1:] + forensics_slugs
+
+    test_lab.slug = rangebox_slugs[0]
+    flag_hash = hashlib.sha256(test_flag.encode()).hexdigest()
+    extra_labs = []
+    for slug in extra_slugs:
+        lab = Lab(
+            name=f"Collection Test {slug}",
+            slug=slug,
+            description="Created by test_collection_badges_for_new_tracks",
+            compose_file="services: {}\n",
+            is_active=True,
+            visibility="public",
+            flag_hash=flag_hash,
+            level_id=test_lab.level_id,
+        )
+        db_session.add(lab)
+        extra_labs.append(lab)
+    db_session.commit()
+
+    try:
+        for lab in [test_lab, *extra_labs]:
+            _submit_flag(client, auth_headers, lab, test_flag)
+
+        db_session.expire_all()
+        awarded = {
+            row.achievement_type
+            for row in db_session.query(Achievement).filter(
+                Achievement.user_id == test_user.id,
+                Achievement.achievement_type.in_(
+                    ("rangebox_ranger", "forensics_pathfinder")
+                ),
+            ).all()
+        }
+        assert "rangebox_ranger" in awarded
+        assert "forensics_pathfinder" in awarded
+    finally:
+        ids = [lab.id for lab in extra_labs]
+        if ids:
+            db_session.query(FlagAttempt).filter(
+                FlagAttempt.lab_id.in_(ids)
+            ).delete(synchronize_session=False)
+            db_session.query(LabCompletion).filter(
+                LabCompletion.lab_id.in_(ids)
+            ).delete(synchronize_session=False)
+            db_session.query(Lab).filter(
+                Lab.id.in_(ids)
+            ).delete(synchronize_session=False)
+            db_session.commit()
+

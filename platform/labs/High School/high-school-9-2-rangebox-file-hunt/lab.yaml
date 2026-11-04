@@ -1,0 +1,96 @@
+name: "RangeBox File Hunt"
+description: "Practice the file commands you need in every later lab. Download a small evidence archive, unpack it, and use find and grep to pick the real token out of the decoys."
+difficulty: beginner
+category: general
+duration_minutes: 25
+visibility: public
+flag: "OCR{f1nd_th3_r34l_f1l3}"
+
+tools:
+  - rangebox
+  - terminal
+
+objectives:
+  - Download a file with curl
+  - Unpack a ZIP archive with unzip
+  - Use find to list files and grep to search their contents
+  - Explain why filenames alone are not evidence
+
+scenario: |
+  A class shared folder was exported before a cleanup. The archive is full of
+  ordinary notes, a few decoys, and one file that contains the training token.
+
+  Your job is to find the real token without opening every file by hand. This is
+  the same pattern investigators use when they triage a folder of evidence:
+  narrow the list first, then read the file that matters.
+
+  The archive is fictional and safe to unpack. If you get stuck, use the hints.
+
+workbook: "wiki/range/high-school/CH_HS09_Grade_9_RangeBox_Basics/02_File_Hunt/"
+
+hostnames:
+  - ip_offset: "92"
+    hostname: "files.lab"
+    description: "RangeBox file-hunt target (HTTP 8080)"
+
+topology:
+  nodes:
+    - id: "files"
+      label: "RangeBox file-hunt target"
+      type: "server"
+      ip_offset: "92"
+      ports: [8080]
+      services: ["http"]
+      x: 1
+      y: 1
+
+hints:
+  - text: |
+      Open RangeBox and start a terminal. Download the archive and unpack it:
+
+      curl -O http://files.lab:8080/evidence.zip
+      unzip evidence.zip
+      ls evidence
+    unlock_after_minutes: 0
+
+  - text: |
+      List every file under the evidence folder:
+
+      find evidence -type f
+
+      Read the archive README first. It tells you which subfolder holds the real
+      token.
+    unlock_after_minutes: 8
+
+  - text: |
+      Search for every OCR token in the archive:
+
+      grep -R "OCR{" evidence
+
+      You will see a decoy token and the real token. The README says the real
+      one is in archive/old/flag.txt, so read that file:
+
+      cat evidence/archive/old/flag.txt
+    unlock_after_minutes: 15
+
+test:
+  steps:
+    - name: "Evidence archive is served"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.files}:8080/evidence.zip"
+      expect: "200"
+      timeout: 20
+
+    - name: "Archive is a valid ZIP file"
+      command: >-
+        curl -s http://{target.files}:8080/evidence.zip
+        | python3 -c "import io,sys,zipfile; print('zip' if zipfile.is_zipfile(io.BytesIO(sys.stdin.buffer.read())) else 'bad')"
+      expect: "zip"
+      timeout: 20
+
+    - name: "Real token is in archive/old/flag.txt"
+      command: >-
+        curl -s http://{target.files}:8080/evidence.zip
+        | python3 -c "import io,sys,zipfile; z=zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())); print(z.read('evidence/archive/old/flag.txt').decode())"
+        | grep -o 'OCR{[^}]*}'
+      expect: "OCR{f1nd_th3_r34l_f1l3}"
+      timeout: 20

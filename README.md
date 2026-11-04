@@ -1,7 +1,22 @@
 # OpenCyberRange
 
-[![Labs](https://img.shields.io/badge/labs-141-blue)](platform/labs/)
-[![Tracks](https://img.shields.io/badge/tracks-10-green)](platform/labs/)
+> **Original project and attribution**
+>
+> OpenCyberRange is based on the original
+> [Open Cyber Range](https://opencyberrange.com/) (OCR-Lite) project, designed
+> and built by **[Lewis Heuermann](https://github.com/syntaxoverride)** and
+> published at
+> [syntaxoverride/opencyberrange](https://github.com/syntaxoverride/opencyberrange).
+> Lewis is a cybersecurity and data analytics professor and a Capture the Flag
+> coach. **This project would not exist without his original hard work.**
+>
+> This repository is an independent updated build maintained by Robert
+> Chaykoski. It is not an official upstream release and is not endorsed by the
+> original author. See [BUILD_NOTICE.md](BUILD_NOTICE.md) for the full notice.
+> The original copyright and PolyForm Noncommercial licence remain in force.
+
+[![Labs](https://img.shields.io/badge/labs-148-blue)](platform/labs/)
+[![Tracks](https://img.shields.io/badge/tracks-11-green)](platform/labs/)
 [![Platform](https://img.shields.io/badge/platform-Docker%20%2B%20WireGuard-orange)](Manual-Lite/00_Server_Deployment/06_Architecture.md)
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE)
 [![AI-assisted](https://img.shields.io/badge/AI-assisted%20build-8b5cf6)](#ai-assistance-disclosure)
@@ -10,22 +25,33 @@ A self-hosted cybersecurity training platform that deploys hands-on exercises in
 
 Students also get a profile with completion statistics, certificates, achievements, and a downloadable PDF transcript. They can download their account data or permanently delete their account from the privacy panel; the erasure suppression ledger and backup workflow keep a restore from resurrecting a deleted account. Instructors and administrators manage courses, progress, and the platform from the same interface.
 
-> **Build provenance:** This repository is an updated build maintained by
-> Robert Chaykoski, based on the original OpenCyberRange/OCR-Lite build created
-> by Lewis Heuermann. It is not an official upstream release or endorsed by the
-> original author. See [BUILD_NOTICE.md](BUILD_NOTICE.md) for the full notice.
-> The original copyright and PolyForm Noncommercial licence remain in force.
+## Measurable outcomes
+
+These are current, checkable counts from this repository and metrics the platform records itself. They describe what learners and instructors can measure; they are not claims about learning ability.
+
+| Outcome | How it is measured | Baseline in this repository |
+|---|---|---|
+| Breadth of hands-on practice | Runnable exercises, tracks, and levels | **148 exercises** across **11 tracks** and **51 levels** |
+| Guided lab instruction | Workbook walkthroughs and analysis questions | **164 workbook pages**, **111 analysis sections**, **407 analysis questions** |
+| Supported practice | Hints available and hint usage recorded per completion | **500+ hints**; hints used are stored with each completion |
+| Automated verification | Per-lab validation checks and flag checks | **650+ validation checks**; flags are stored as hashes |
+| Skill progression | Sequential level completion and level certificates | Level gates and **certificates for each completed level** |
+| Course delivery | Assignments, completion counts, and scoreboard | Per-student completion, attempt, hint, and time records |
+| Recognition | Achievement and competition scoring signals | Completion, no-hint, first-attempt, speed, and first-blood signals |
+| Learner evidence | Profile, transcript, and reports | PDF transcript, completion matrix, and per-course reports |
+| Session isolation | Network separation per learner | One `/24` per session plus WireGuard access |
 
 ### Release and repositories
 
 | Repository | Purpose | State |
 |---|---|---|
-| [`opencyberrange-backup`](https://github.com/RobChaykoski/opencyberrange-backup) | Current / production build | `v2.3.0` |
-| [`opencyberrange-next`](https://github.com/RobChaykoski/opencyberrange-next) | Upgrade staging on the latest supported GA stack | `v2.3.0`, CI green |
+| [`opencyberrange`](https://github.com/RobChaykoski/opencyberrange) | Production and development (canonical) | `v2.3.2`, CI green |
+| [`opencyberrange-backup`](https://github.com/RobChaykoski/opencyberrange-backup) | Read-only archive of the pre-cutover tree | `v2.3.2`; archived at cutover |
 
-The two trees share history: `next` is `current` plus the upgrade scaffold and
-the dependency waves. See `docs/MOVE-TO-OPENCYBER-NEXT.md` and the
-`WAVE-*.md` records for the migration trail.
+This repository is the only development tree. It contains all history from the
+pre-cutover tree plus the upgrade scaffold and dependency waves. See
+`docs/MOVE-TO-OPENCYBER-NEXT.md` and `docs/CUTOVER-TO-CANONICAL-REPO.md` for the
+migration and cutover trail.
 
 ## AI assistance disclosure
 
@@ -104,7 +130,10 @@ participants, new sign-ups, existing opt-ins, and a copyable sign-up link.
 | OT/ICS Security | 1 | Modbus enumeration and register analysis |
 | AI Hacking | 3 | Prompt injection, jailbreak policy bypass, indirect prompt injection |
 | OSINT | 4 | Public-surface mapping, metadata, image steganography, source-code and public-repository leaks |
-| **High School Cybersecurity** | **1** | Browser-first Grades 9–12 pathway; Grade 12 DevFest community portal |
+| **High School Cybersecurity** | **6** | Browser-first Grades 9–12 pathway; RangeBox basics, defensive logs, and the Grade 12 DevFest community portal |
+| Software Security | 2 | Source review, hidden routes, command injection, and remediation |
+| Digital Forensics | 2 | Memory analysis and VoIP network evidence reconstruction |
+| **Total** | **148** | **11 tracks · 51 levels** |
 
 ## Network Foundations stream
 
@@ -183,10 +212,15 @@ who are curious but may be new to the field:
 
 | Grade | Focus |
 |---|---|
-| 9 | Digital safety foundations |
-| 10 | Systems and networks |
-| 11 | Defensive security |
+| 9 | RangeBox basics and file discovery |
+| 10 | Networks, HTTP responses, and browser source |
+| 11 | Defensive security: logs, suspicious requests, and evidence |
 | 12 | Applied cybersecurity and community event challenges |
+
+The Grade 11 **RangeBox Log Detective** exercise introduces defensive security:
+students read a short web access log, identify repeated probing from one source,
+and explain the evidence before submitting a training token. It uses the same
+browser-first RangeBox target as the Grade 9 and 10 exercises.
 
 The Grade 12 **DevFest Community Portal** exercise is a gentle OSINT challenge
 themed around [DevFest Windsor-Essex 2026](https://wedevfest.com) on
@@ -231,9 +265,9 @@ or repository secret:
 - **Dependency audit** — `pip-audit` and `npm audit --omit=dev` on every pull
   request and weekly.
 
-Current status at `v2.3.0`: `pip-audit` reports **0 packages with advisories**
+Current status at `v2.3.2`: `pip-audit` reports **0 packages with advisories**
 and `npm audit` reports **0 vulnerabilities**. The remediation trail is in the
-`WAVE-A`, `WAVE-B`, and `WAVE-C` documents in the next repository.
+`WAVE-A`, `WAVE-B`, and `WAVE-C` documents in `docs/`.
 
 Findings appear in the repository's **Security** tab. Code scanning on a public
 repository is free; a private repository needs GitHub Advanced Security for the
@@ -292,15 +326,113 @@ classrooms where not every student has the same hardware:
 The screenshots in this README use a temporary synthetic account and temporary
 demo records. No real learner names, emails, or records are shown.
 
+## Security and operations
+
+### Authentication
+
+- Username/password login issues a signed JWT with a unique `jti` claim. Tokens
+  expire after `JWT_EXPIRATION_HOURS` (24-hour default) and are checked against
+  a persistent revocation table on every request, so logout and admin
+  revocation take effect across workers.
+- Roles are enforced server-side: **student**, **instructor**, and **admin**.
+  Admin impersonation is read-only and blocked from mutating data.
+- Optional MFA supports TOTP and ten single-use recovery codes. Recovery codes
+  are stored as hashes, not plaintext.
+- Login is rate-limited to 10 attempts per minute per IP. Five failed attempts
+  lock an account for 30 minutes. Registration is limited to 5/minute,
+  30/hour, and 100/day per IP, with a documented relaxation during live
+  competitions.
+- Registration can require administrator approval and, optionally, a valid
+  invite code. Instructor and administrator passwords must meet stricter
+  complexity rules.
+
+### Password storage
+
+- New passwords are hashed with **Argon2id** through `pwdlib`.
+- Legacy **bcrypt** hashes still verify; a successful login transparently
+  rewrites them to Argon2id.
+- Plaintext passwords are never stored. Password hashes, TOTP secrets,
+  recovery codes, trusted-device tokens, and WireGuard private keys are
+  excluded from the user data export.
+
+### Backup strategy
+
+- A complete backup includes the PostgreSQL dump, `.env`, compose file, TLS
+  certificates, and the erasure suppression ledger.
+- Backups contain password hashes and personal data. Keep them private, encrypt
+  them at rest where possible, and delete them when the retention period ends.
+- The default retention is **30 days**. `upgrade-from-backup.sh` copies the
+  ledger into each backup and prunes older completed backups; use
+  `--backup-retention-days N` to change the window or `0` to disable pruning.
+- After a restore, re-apply the **live** erasure ledger with
+  `scripts/purge_erased_accounts.py`. Otherwise an older dump could resurrect a
+  deleted account. `user_transfer.py import` consults the ledger by default.
+- Full procedure: [Privacy, Erasure, and Backups](docs/PRIVACY-AND-DATA-DELETION.md)
+  and the [Docker Compose Deployment Manual](Manual-Lite/00_Server_Deployment/08_Docker_Deploy_Manual.md).
+
+### VPN isolation
+
+- Each learner receives a WireGuard peer on `10.0.0.x` and reaches only lab
+  networks under `10.100.0.0/16`. Each session gets its own `/24`.
+- The firewall blocks the lab and RangeBox subnets from external interfaces and
+  from the host management LAN. This isolation is re-applied on backend start
+  and persisted for reboot.
+- Lab traffic cannot route between different learners' session networks. The
+  Peer Manager API is internal-only; do not expose port 5000.
+- WireGuard private keys are encrypted at rest with `WG_ENCRYPTION_KEY`. VPN
+  configs and QR codes are generated on demand and marked `no-store`.
+- Open `51820/udp` only when students use the VPN. See the
+  [Architecture guide](Manual-Lite/00_Server_Deployment/06_Architecture.md).
+
+### Container isolation
+
+- Every lab session gets its own Docker bridge network and dedicated `/24`;
+  services attach only to that session network, which is removed when the lab
+  stops.
+- The platform applies default per-service CPU and memory caps when a lab does
+  not declare its own, with no swap. RangeBox desktops are separately capped and
+  run with a PID limit.
+- Lab definitions routinely add defence in depth: `cap_drop: ALL`,
+  `security_opt: no-new-privileges`, read-only root filesystems with `tmpfs`,
+  and non-root users where the image supports it.
+- The backend mounts the Docker socket to orchestrate labs. Treat the host and
+  the `docker` group as privileged, keep the backend bound to localhost, and
+  expose only the frontend ports required by the deployment.
+
+### Data deletion process
+
+- **Self-service:** Profile → **Privacy and data** → **Delete my account**.
+  The request requires the current password, a live TOTP or recovery code when
+  MFA is enabled, and typing `DELETE`.
+- **Administrator:** Admin → Users → Delete requires typing the username and
+  uses the same erasure service.
+- Deletion removes identity and credential data, the WireGuard peer and keys,
+  enrolments, completions, flag and quiz attempts, achievements, competition
+  entries, lab sessions/containers, and WebSocket tickets. Activity and audit
+  records are anonymised; authored labs keep their content but lose the author
+  link.
+- An instructor who owns courses must transfer them first. The last usable
+  administrator cannot delete their own account.
+- A keyed suppression ledger stores HMAC hashes of the erased username and
+  email on the persistent `/workbook` volume. Restores re-apply it so deleted
+  accounts cannot be resurrected.
+- Backups taken before deletion may retain the account until they age out of
+  the 30-day retention window. Activity/audit retention defaults to 90 days.
+  Downloaded certificate and transcript PDFs cannot be revoked by the platform.
+
 ## Quick Start
 
 Run the setup script on a fresh Ubuntu 22.04+ server (see [Requirements](#requirements) for sizing):
 
 ```bash
-git clone https://github.com/syntaxoverride/opencyberrange.git
+git clone https://github.com/RobChaykoski/opencyberrange.git
 cd opencyberrange
 sudo bash scripts/setup-range-server.sh --install
 ```
+
+Prefer to run Docker Compose yourself? See the
+[Docker Compose Deployment Manual](Manual-Lite/00_Server_Deployment/08_Docker_Deploy_Manual.md)
+for a command-by-command deployment.
 
 The first prompt in the setup script asks how students will reach the server:
 
@@ -370,7 +502,7 @@ For public-facing deployments behind a domain, the [Cloud Deployment guide](Manu
 
 ## Manual Setup
 
-For production deployments or custom configurations, see the [Server Deployment guides](Manual-Lite/00_Server_Deployment/) which cover each step individually.
+For production deployments or custom configurations, see the [Server Deployment guides](Manual-Lite/00_Server_Deployment/) which cover each step individually. For a direct, command-by-command path, use the [Docker Compose Deployment Manual](Manual-Lite/00_Server_Deployment/08_Docker_Deploy_Manual.md).
 
 ## Platform Components
 
@@ -435,7 +567,7 @@ After installation, log in as admin and navigate to **Admin Panel > System Healt
 
 - **OS:** Ubuntu 22.04 LTS or later (Debian-based)
 - **CPU:** 4+ cores (KVM-capable for shared VM labs)
-- **Platform stack:** Python 3.11, Node 22 (frontend build), PostgreSQL 15, Docker Compose v2. Current pins and the upgrade trail are in [`versions.yaml`](https://github.com/RobChaykoski/opencyberrange-next/blob/main/versions.yaml) and the `WAVE-*.md` documents in the next repository.
+- **Platform stack:** Python 3.11, Node 22 (frontend build), PostgreSQL 15, Docker Compose v2. Current pins and the upgrade trail are in [`versions.yaml`](https://github.com/RobChaykoski/opencyberrange/blob/main/versions.yaml) and the `WAVE-*.md` documents in `docs/`.
 - **RAM:** 32 GB minimum, 64 GB recommended for 20+ concurrent students. Most RAM goes to RangeBoxes (the in-browser desktops), each hard-capped at 2 GB; the platform auto-sizes how many it will start from free memory, keeping an 8 GB reserve. See [Prerequisites and Sizing](Manual-Lite/00_Server_Deployment/01_Prerequisites.md#memory-and-rangebox-capacity).
 - **Disk (production):** 500 GB; pre-building all exercise containers uses ~200 GB of images and cache; exercises then start in seconds for students
 - **Disk (evaluation):** 100 GB; skip pre-building and let containers build on first launch; the first student to start each exercise waits 1-3 minutes while Docker builds the image, but disk stays small until exercises are actually used

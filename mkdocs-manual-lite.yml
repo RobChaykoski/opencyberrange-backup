@@ -104,6 +104,7 @@ nav:
     - "Cannot Reach Lab Target": 07_Troubleshooting/05_Cannot_Reach_Lab_Target.md
     - "Flag Not Accepted": 07_Troubleshooting/06_Flag_Not_Accepted.md
     - "Session Expired Unexpectedly": 07_Troubleshooting/07_Session_Expired_Unexpectedly.md
+  - "Glossary": 08_Glossary/01_Glossary.md
   - "Instructor Guide":
     - "Instructor Dashboard": 03_Instructor_Guide/01_Instructor_Dashboard.md
     - "Creating a Course": 03_Instructor_Guide/02_Creating_a_Course.md
@@ -123,6 +124,7 @@ nav:
     - "Course Assessments": 03_Instructor_Guide/16_Course_Assessments.md
   - "Server Deployment":
     - "Prerequisites": 00_Server_Deployment/01_Prerequisites.md
+    - "Docker Compose Manual": 00_Server_Deployment/08_Docker_Deploy_Manual.md
     - "Local Deployment": 00_Server_Deployment/02_Local_Deployment.md
     - "Cloud Deployment": 00_Server_Deployment/03_Cloud_Deployment.md
     - "Post Installation": 00_Server_Deployment/04_Post_Installation.md

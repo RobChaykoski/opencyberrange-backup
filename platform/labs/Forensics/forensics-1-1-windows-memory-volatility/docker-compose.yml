@@ -1,0 +1,21 @@
+services:
+  analyst:
+    mem_limit: 1g
+    cpus: 1.0
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    build:
+      context: ./containers/analyst
+      dockerfile: Dockerfile
+    hostname: memory-analyst
+    labels:
+      ip_offset: "95"
+    environment:
+      FLAG: "OCR{e19ccf75}"
+    restart: unless-stopped

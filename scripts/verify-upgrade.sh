@@ -7,7 +7,7 @@
 #
 # Usage:
 #   bash scripts/verify-upgrade.sh
-#   bash scripts/verify-upgrade.sh --remote backup --branch main
+#   bash scripts/verify-upgrade.sh --remote origin --branch main
 #
 # Exit codes: 0 = ready, 1 = one or more blocking failures.
 
@@ -20,7 +20,7 @@ PLATFORM_DIR="$REPO_DIR/platform"
 USER_TRANSFER="$SCRIPT_DIR/user_transfer.py"
 TARGET_REPO=""
 BACKUP_ROOT="${BACKUP_ROOT:-$HOME/opencyberrange-backups}"
-REMOTE="${GIT_REMOTE:-backup}"
+REMOTE="${GIT_REMOTE:-origin}"
 BRANCH="${GIT_BRANCH:-main}"
 DB_USER="${DB_USER:-}"
 DB_NAME="${DB_NAME:-}"
@@ -40,7 +40,8 @@ Options:
   --repo DIR          Existing OpenCyberRange deployment to verify (a Git
                       checkout with .env and docker-compose.yml at its root,
                       or platform/.env for the development layout)
-  --remote NAME       Git remote to verify (default: backup, then origin)
+  --remote NAME       Git remote to verify (default: origin, then the legacy
+                      backup remote)
   --branch NAME       Git branch to verify (default: main)
   --backup-root DIR   Backup destination to check
   --db-user USER      PostgreSQL user (default: POSTGRES_USER from platform/.env)
@@ -298,10 +299,10 @@ if [[ "$RUNTIME_ONLY" == false ]]; then
   if repo_git remote get-url "$REMOTE" >/dev/null 2>&1; then
     pass "git remote '$REMOTE' exists"
   else
-    if [[ "$REMOTE" == "backup" ]] && repo_git remote get-url origin >/dev/null 2>&1; then
-      warn "remote 'backup' not found; origin exists"
-      REMOTE=origin
-      pass "git remote 'origin' exists"
+    if [[ "$REMOTE" == "origin" ]] && repo_git remote get-url backup >/dev/null 2>&1; then
+      warn "remote 'origin' not found; using the legacy 'backup' remote"
+      REMOTE=backup
+      pass "git remote 'backup' exists"
     else
       fail "git remote '$REMOTE' does not exist"
     fi

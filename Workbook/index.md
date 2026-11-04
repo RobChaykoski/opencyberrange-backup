@@ -92,14 +92,27 @@ Start the OSINT stream at
 Start the software-security stream at
 [CH SWSEC — Software Security](CH_SWSEC_Software_Security/00_Introduction.md).
 
+### Digital Forensics
+
+| Chapter | Focus | Exercises |
+|---------|-------|-----------|
+| CH FOR01; Memory Forensics | Memory images, processes, registry data, and Volatility 3 | 1 exercise |
+| CH FOR02; Network Forensics | Packet captures, SIP/RTP, and voice reconstruction | 1 exercise |
+
+Start the forensics pathway at
+[CH FOR01 - Memory Forensics](CH_FOR01_Memory_Forensics/00_Introduction.md).
+
 ### High School Cybersecurity
 
 | Chapter | Focus | Exercises |
 |---------|-------|-----------|
+| CH HS09; Grade 9 RangeBox Basics | Launching RangeBox, terminal basics, file search | 2 exercises |
+| CH HS10; Grade 10 RangeBox Basics | Hostnames, HTTP responses, browser source | 2 exercises |
+| CH HS11; Grade 11 Defensive Security | Web server logs, suspicious requests, evidence and response | 1 exercise |
 | CH HS12; Grade 12 Applied Cybersecurity | Browser-only OSINT, file metadata, privacy, and community event challenges | 1 exercise |
 
 Start the high-school pathway at
-[CH HS12 — Grade 12 Applied Cybersecurity](CH_HS12_Grade_12_Applied_Cybersecurity/00_Introduction.md).
+[CH HS09 - Grade 9 RangeBox Basics](CH_HS09_Grade_9_RangeBox_Basics/00_Introduction.md).
 
 ## How to Use This Workbook
 

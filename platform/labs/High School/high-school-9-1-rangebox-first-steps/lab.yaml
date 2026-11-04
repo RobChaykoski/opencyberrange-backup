@@ -1,0 +1,97 @@
+name: "RangeBox First Steps"
+description: "A gentle first exercise in the browser-based RangeBox desktop. Open the terminal, run four basic commands, and retrieve a welcome file from a safe practice target. No prior experience needed."
+difficulty: beginner
+category: general
+duration_minutes: 20
+visibility: public
+flag: "OCR{r4ng3b0x_f1rst_st3ps}"
+
+tools:
+  - rangebox
+  - browser
+  - terminal
+
+objectives:
+  - Launch a RangeBox desktop and open a terminal
+  - Run pwd, ls, whoami, and curl
+  - Read a plain-text response from a practice web server
+  - Explain what a command prompt is and why it is useful
+
+scenario: |
+  Your class is starting its first hands-on cybersecurity unit. Before you
+  investigate anything, you need to know how to move around the training
+  desktop.
+
+  RangeBox gives you a Kali, Ubuntu, or REMnux desktop in the browser. In this
+  exercise you will open the desktop, start a terminal, and use a few simple
+  commands to retrieve a welcome file from a practice server.
+
+  The target is fictional and safe. You cannot break it, you can use hints, and
+  you can stop at any time. If this is your first terminal session, take it one
+  command at a time.
+
+workbook: "wiki/range/high-school/CH_HS09_Grade_9_RangeBox_Basics/01_First_Steps/"
+
+hostnames:
+  - ip_offset: "91"
+    hostname: "rangebox.lab"
+    description: "RangeBox practice target (HTTP 8080)"
+
+topology:
+  nodes:
+    - id: "portal"
+      label: "RangeBox practice target"
+      type: "server"
+      ip_offset: "91"
+      ports: [8080]
+      services: ["http"]
+      x: 1
+      y: 1
+
+hints:
+  - text: |
+      From the exercise page, choose **Launch RangeBox** and pick the Kali
+      desktop. Wait for the desktop to finish loading, then open the terminal
+      from the taskbar or application menu.
+
+      If RangeBox is not available, use the lab browser and open
+      http://rangebox.lab:8080 instead.
+    unlock_after_minutes: 0
+
+  - text: |
+      In the terminal, try each command and read the output before running the
+      next one:
+
+      pwd
+      whoami
+      ls
+
+      pwd prints your current folder. whoami prints your account name. ls lists
+      the files in the current folder.
+    unlock_after_minutes: 5
+
+  - text: |
+      Download the welcome file with curl:
+
+      curl http://rangebox.lab:8080/welcome.txt
+
+      The training token is on the line that starts with "Training token:".
+      Copy the OCR{...} value into the flag box.
+    unlock_after_minutes: 10
+
+test:
+  steps:
+    - name: "Practice target responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.portal}:8080/"
+      expect: "200"
+      timeout: 20
+
+    - name: "Welcome file is served"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.portal}:8080/welcome.txt"
+      expect: "200"
+      timeout: 20
+
+    - name: "Welcome file contains the training token"
+      command: "curl -s http://{target.portal}:8080/welcome.txt | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{r4ng3b0x_f1rst_st3ps}"
+      timeout: 20

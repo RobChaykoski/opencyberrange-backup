@@ -7,13 +7,12 @@ certificates of completion, every completed exercise, and course achievements.
 import base64
 import io
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 
 from fpdf import FPDF
 
 from app.services.pdf_report import _sanitize_for_pdf
+from app.timezones import UTC, resolve_timezone
 
-LOCAL_TZ = ZoneInfo("America/Chicago")
 MARGIN = 14
 CONTENT_W = 210 - (MARGIN * 2)
 
@@ -48,7 +47,7 @@ def _truncate(value, length: int) -> str:
     return text[: max(0, length - 2)] + ".."
 
 
-def _format_date(value, with_time: bool = False) -> str:
+def _format_date(value, with_time: bool = False, local_tz=UTC) -> str:
     if not value:
         return "-"
     try:
@@ -56,7 +55,7 @@ def _format_date(value, with_time: bool = False) -> str:
         parsed = datetime.fromisoformat(text)
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=timezone.utc)
-        parsed = parsed.astimezone(LOCAL_TZ)
+        parsed = parsed.astimezone(local_tz)
         return parsed.strftime("%d %b %Y %H:%M" if with_time else "%d %b %Y")
     except Exception:
         return _sanitize(value)
@@ -101,7 +100,7 @@ def _draw_avatar(pdf: FPDF, data_url, x: float, y: float, size: float):
         return
 
 
-def _draw_identity(pdf: FPDF, summary: dict):
+def _draw_identity(pdf: FPDF, summary: dict, local_tz=UTC):
     user = summary.get("user", {})
     _draw_avatar(pdf, user.get("avatar_data"), MARGIN, 17, 26)
 
@@ -130,8 +129,8 @@ def _draw_identity(pdf: FPDF, summary: dict):
     pdf.cell(
         0, 5,
         _sanitize(
-            f"Member since {_format_date(user.get('created_at'))}   |   "
-            f"Generated {_format_date(datetime.now(timezone.utc).isoformat(), True)} CT"
+            f"Member since {_format_date(user.get('created_at'), local_tz=local_tz)}   |   "
+            f"Generated {_format_date(datetime.now(timezone.utc).isoformat(), True, local_tz)} {local_tz.key}"
         ),
         new_x="LMARGIN", new_y="NEXT",    )
 
@@ -167,7 +166,7 @@ def _draw_totals(pdf: FPDF, totals: dict):
     pdf.set_y(y + 25)
 
 
-def _draw_certificates(pdf: FPDF, certificates: list):
+def _draw_certificates(pdf: FPDF, certificates: list, local_tz=UTC):
     _section_heading(pdf, "Certificates of Completion")
     if not certificates:
         pdf.set_font("Helvetica", "I", 9)
@@ -196,7 +195,7 @@ def _draw_certificates(pdf: FPDF, certificates: list):
                 f"Level {certificate.get('level_number')}: {certificate.get('level_name')}",
                 40,
             ),
-            _format_date(certificate.get("issued_on")),
+            _format_date(certificate.get("issued_on"), local_tz=local_tz),
         ]
         for column, (value, width) in enumerate(zip(values, widths, strict=False)):
             pdf.cell(width, 6, value, fill=True, align="C" if column == 3 else "L")
@@ -235,7 +234,7 @@ def _draw_track_progress(pdf: FPDF, tracks: list):
         pdf.ln()
 
 
-def _draw_completions(pdf: FPDF, completions: list):
+def _draw_completions(pdf: FPDF, completions: list, local_tz=UTC):
     _section_heading(pdf, "Completed Exercises")
     if not completions:
         pdf.set_font("Helvetica", "I", 9)
@@ -243,7 +242,7 @@ def _draw_completions(pdf: FPDF, completions: list):
         pdf.cell(0, 6, "No exercises completed yet.", new_x="LMARGIN", new_y="NEXT")
         return
 
-    headers = ["Track", "Level", "Exercise", "Completed (CT)", "Att.", "Hints", "Min"]
+    headers = ["Track", "Level", "Exercise", f"Completed ({local_tz.key})", "Att.", "Hints", "Min"]
     widths = [34, 30, 60, 30, 9, 9, 10]
     _table_header(pdf, headers, widths)
     for index, row in enumerate(completions):
@@ -259,7 +258,7 @@ def _draw_completions(pdf: FPDF, completions: list):
             _truncate(row.get("track_name"), 28),
             _truncate(row.get("level_name"), 24),
             _truncate(row.get("lab_name"), 50),
-            _format_date(row.get("completed_at"), True),
+            _format_date(row.get("completed_at"), True, local_tz),
             str(row.get("attempts") or 0),
             str(row.get("hints_used") or 0),
             str(row.get("time_spent_minutes") or "-"),
@@ -305,7 +304,7 @@ def _draw_achievements(pdf: FPDF, achievements: list):
             pdf.set_text_color(51, 65, 85)
 
 
-def generate_profile_transcript(summary: dict) -> bytes:
+def generate_profile_transcript(summary: dict, timezone_name: str | None = None) -> bytes:
     """Build the transcript PDF from a profile summary payload."""
     pdf = ProfileTranscriptPDF()
     pdf.alias_nb_pages()
@@ -313,11 +312,12 @@ def generate_profile_transcript(summary: dict) -> bytes:
     pdf.set_margins(MARGIN, 14, MARGIN)
     pdf.add_page()
 
-    _draw_identity(pdf, summary)
+    local_tz = resolve_timezone(timezone_name)
+    _draw_identity(pdf, summary, local_tz)
     _draw_totals(pdf, summary.get("totals", {}))
-    _draw_certificates(pdf, summary.get("certificates", []))
+    _draw_certificates(pdf, summary.get("certificates", []), local_tz)
     _draw_track_progress(pdf, summary.get("tracks", []))
-    _draw_completions(pdf, summary.get("completions", []))
+    _draw_completions(pdf, summary.get("completions", []), local_tz)
     _draw_achievements(pdf, summary.get("achievements", []))
 
     pdf.ln(6)

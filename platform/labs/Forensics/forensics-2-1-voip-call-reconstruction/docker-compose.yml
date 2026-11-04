@@ -1,0 +1,25 @@
+services:
+  evidence:
+    mem_limit: 128m
+    cpus: 0.2
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 32M
+    build:
+      context: ./containers/evidence
+      dockerfile: Dockerfile
+    hostname: voice-evidence
+    labels:
+      ip_offset: "96"
+    environment:
+      FLAG: "OCR{v01c3_c4ll_r3c0n}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped

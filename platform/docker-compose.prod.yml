@@ -37,6 +37,20 @@ services:
       retries: 10
       start_period: 30s
 
+  redis:
+    image: redis:7-alpine
+    container_name: ocr-redis
+    # Rate-limit counters are ephemeral: no RDB snapshots, no AOF. A restart
+    # only resets the current windows.
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
   backend:
     build:
       context: ./backend
@@ -65,6 +79,10 @@ services:
       LABS_HOST_PATH: ${LABS_HOST_PATH}
       SERVER_PUBLIC_HOST: ${SERVER_PUBLIC_HOST:-localhost}
       CORS_ORIGINS: ${CORS_ORIGINS:-https://localhost}
+      # Shared counter store so every worker enforces the same limits. Keep
+      # the default when running redis; set "memory://" only for single-worker
+      # development.
+      RATELIMIT_STORAGE_URI: ${RATELIMIT_STORAGE_URI:-redis://redis:6379/0}
       TZ: UTC
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -79,6 +97,8 @@ services:
       - ./templates:/app/templates:ro
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
     healthcheck:

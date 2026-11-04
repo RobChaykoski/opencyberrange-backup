@@ -43,7 +43,11 @@ flowchart LR
   [Viewing Your Profile](02_Student_Guide/16_Viewing_Your_Profile.md).
 - Need the exact rules for flags, scoring, and lab timing? See the
   [Lab Workflow Reference](06_Lab_Workflow_Reference/01_Lab_Lifecycle_Overview.md).
+- Looking for a term or the MISP-aligned definition? See the
+  [Glossary](08_Glossary/01_Glossary.md).
 - Something not working? See [Troubleshooting](07_Troubleshooting/01_Login_Issues.md).
 - Teaching a course? See the [Instructor Guide](03_Instructor_Guide/01_Instructor_Dashboard.md).
 - Running the server? See [Server Deployment](00_Server_Deployment/01_Prerequisites.md)
   and the [Admin Guide](04_Admin_Guide/01_Admin_Panel_Overview.md).
+- Prefer direct Docker Compose? See the
+  [Docker Compose Deployment Manual](00_Server_Deployment/08_Docker_Deploy_Manual.md).

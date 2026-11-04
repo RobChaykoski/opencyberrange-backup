@@ -6,8 +6,7 @@ All endpoints require admin authentication.
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 
 from app.database import get_db
 from app.auth import get_current_admin_user
@@ -20,7 +19,7 @@ from app.services.achievements import CUSTOM_ACHIEVEMENT_TRIGGERS
 from app.services.audit import log_admin_action, AuditActions
 
 router = APIRouter()
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 
 
 def _serialize_custom_achievement(row: CustomAchievement) -> dict:

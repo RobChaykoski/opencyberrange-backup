@@ -1,0 +1,72 @@
+name: Quality checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly external-link sweep; internal checks still run on every PR.
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  labs-and-docs:
+    name: labs, links, and docs build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install documentation tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install \
+            pyyaml==6.0.3 \
+            mkdocs==1.6.1 \
+            mkdocs-material==9.8.0 \
+            pymdown-extensions==11.0.1
+
+      - name: Validate every lab
+        run: python scripts/validate-lab.py --all
+
+      - name: Check internal links and MkDocs nav
+        run: python scripts/check-links.py --mkdocs
+
+      - name: Build every documentation site
+        env:
+          NO_MKDOCS_2_WARNING: "1"
+        run: |
+          set -euo pipefail
+          for config in mkdocs-*.yml; do
+            name="${config%.yml}"
+            echo "::group::mkdocs build $config"
+            mkdocs build -f "$config" -d "$RUNNER_TEMP/site/$name"
+            echo "::endgroup::"
+          done
+
+  external-links:
+    name: external links (scheduled)
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install link checker
+        run: pip install pyyaml==6.0.3
+
+      - name: Probe external links
+        run: python scripts/check-links.py --external --mkdocs --timeout 15

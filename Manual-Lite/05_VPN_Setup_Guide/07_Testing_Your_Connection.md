@@ -25,6 +25,9 @@ Confirming the tunnel works has two parts: checking that WireGuard has a handsha
 
 **What you should see.** `wg show` lists a recent **latest handshake** time and a **transfer** line with received bytes. The ping returns replies, and the scan lists open ports on the lab target.
 
+!!! note "DNS over VPN"
+    The tunnel routes lab IP traffic, not lab DNS. Hostnames such as `voice.lab` resolve automatically inside RangeBox, but from your own machine you may need to add the hostname and target IP from the Active Lab panel to `/etc/hosts`. You can always test connectivity with the IP address instead of the hostname.
+
 ## How testing maps to the connection
 
 The flow below shows the order the checks confirm.

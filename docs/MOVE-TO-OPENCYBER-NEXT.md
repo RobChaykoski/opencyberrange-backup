@@ -1,19 +1,19 @@
 # Moving All Content to `opencyberrange-next`
 
-Status: complete. The next tree is rebased onto the current tree and pushed to
-`RobChaykoski/opencyberrange-next`; see the copy of this document in that
-repository for the full verification record and the push-protection caveat.
+Status: historical. This document records the move from the pre-cutover tree to
+the staging repository. The staging repository was subsequently renamed to
+`RobChaykoski/opencyberrange` and is now the canonical tree. See
+`CUTOVER-TO-CANONICAL-REPO.md` for the remaining cutover steps.
 
 ## Current state
 
 | Tree | Location | State |
 |---|---|---|
-| Current / production | `RobChaykoski/opencyberrange-backup` | `main`, release `v2.1.4` |
-| Next / upgrade staging | `RobChaykoski/opencyberrange-next` | `v2.1.4` + Wave 0; pushed |
-| Next remote | `RobChaykoski/opencyberrange-next` | Public, default branch `main` |
+| Canonical | `RobChaykoski/opencyberrange` (formerly `opencyberrange-next`) | `main`, release line `v2.3.2` plus Waves 0–C |
+| Pre-cutover archive | `RobChaykoski/opencyberrange-backup` | `main`, `v2.3.2`; read-only after the cutover |
 
-The next tree now contains every tracked file from current plus the Wave 0
-scaffold, and its `main` tracks `origin/main`.
+The canonical tree contains every tracked file and commit from the pre-cutover
+tree plus the Wave 0 scaffold and the dependency waves.
 
 ## Goal
 
@@ -25,7 +25,7 @@ Make `opencyberrange-next` contain:
 4. the same licence, notices, provenance, and skills;
 5. no `.env`, backups, generated output, or other ignored state.
 
-## 1. Freeze the current tree
+## 1. Freeze the current tree (complete)
 
 The final current commit is the last commit on `main`. Tag it before moving:
 
@@ -43,7 +43,7 @@ From this point:
 - only a critical hotfix may be cherry-picked from next;
 - the tag is the rollback point.
 
-## 2. Rebase the Wave 0 scaffold onto current
+## 2. Rebase the Wave 0 scaffold onto current (complete)
 
 The next tree has one unique commit. Replay it on top of current so the result
 is a linear `current + Wave 0` history.
@@ -73,10 +73,13 @@ git branch -f main migration
 
 ## 3. Update the Wave 0 baseline reference (complete)
 
-`docs/WAVE-0-BASELINE.md` in the next tree names the release commit as its source,
-matching the current commit.
+`docs/WAVE-0-BASELINE.md` names the release commit as its source, matching the
+current commit.
 
-## 4. Verify the new tree
+Also check `README-UPGRADE.md` and `docs/UPGRADE-TO-LATEST-GA-PLAN.md` for any
+stale commit references.
+
+## 4. Verify the new tree (complete)
 
 ```bash
 cd /path/to/opencyberrange-next
@@ -86,7 +89,8 @@ git log --oneline -5
 git diff --stat current/main..HEAD
 ```
 
-The diff should show only the Wave 0 scaffold. Then run the full gates:
+The diff should show the Wave 0 scaffold plus this migration-status update.
+Then run the full gates:
 
 ```bash
 # Backend
@@ -111,45 +115,78 @@ docker compose --env-file .env -f docker-compose.prod.yml config >/dev/null
 Also run the two software-security labs and the DevFest seed smoke test, or
 reuse the recorded results from the final current commit.
 
+Verified on the rebased Wave 0 tree:
+
+- 54 backend tests passed on PostgreSQL 17.
+- Frontend lint: 0 errors; production build passed.
+- Both Software Security labs validated (21/22 checks; informational resource
+  limit suggestion only).
+- `docker compose config` resolved `LABS_HOST_PATH` to the next tree.
+- `git diff --stat current/main..HEAD` contains the Wave 0 scaffold and this
+  migration-status update.
+
 ## 5. Create and push the new repository (complete)
 
 The repository exists at <https://github.com/RobChaykoski/opencyberrange-next>,
-is public, uses `main` as its default branch, and holds `main` plus the tags
-`final-current-2026-11-01`, `v2.1.0`–`v2.1.4`, and `wave-0-baseline`.
+is public, and uses `main` as its default branch. Pushed content:
 
-The initial push was rejected with `GH013` because the account blocks pushes of
-detected secrets to public repositories. The training labs deliberately contain
-a well-known Stripe demo key, so the repository was made private for the import
-and then switched back to public. Secret scanning alerts stay enabled. See the
-copy of this document in the next repository for the full record.
+```bash
+cd /path/to/opencyberrange-next
+git push -u origin main
+git push origin --tags
+```
 
-Still optional on the new repository:
+Tags present: `final-current-2026-11-01`, `v2.1.0`–`v2.1.4`,
+`wave-0-baseline`.
 
-- protect `main` (PR + CI required);
-- install the Renovate app (Dependabot is already active).
+### Push-protection caveat
 
-CI, CodeQL, Trivy, and the dependency audit run green on `main`.
+The account blocks pushes of detected secrets to **public** repositories,
+independent of the repository-level setting. The training labs deliberately
+contain a well-known Stripe demo key
+(`platform/labs/Linux/linux-4-1-credential-pivot-attack/.../Dockerfile`), so
+the initial import was rejected with `GH013` even after
+`secret_scanning_push_protection` was set to `disabled`.
 
-## 6. Switch development to next
+The import was completed by temporarily making the repository private:
 
-- Treat `opencyberrange-next` as the only development tree.
-- Keep current as a read-only archive and rollback tag.
+```bash
+# repository was set private, main + tags pushed, then set public again
+```
+
+Secret scanning alerts remain enabled on the repository. If history is ever
+force-pushed through a public path, expect the same `GH013` rejection and use
+the temporary-private method again.
+
+After the push:
+
+- [x] set `main` as the default branch;
+- [ ] protect `main` (PR + CI required);
+- [ ] install the Renovate app (Dependabot is already active);
+- [x] confirm the new CI workflows run.
+
+## 6. Switch development to the canonical repository
+
+- Treat `opencyberrange` (formerly `opencyberrange-next`) as the only
+  development tree.
+- Keep the pre-cutover repository as a read-only archive and rollback tag.
 - Rename the local remotes for clarity if desired:
-  - `origin` = `opencyberrange-next`;
+  - `origin` = `opencyberrange`;
   - `current` = `opencyberrange-backup` (frozen);
   - optionally `legacy` = the old backup remote.
-- Do not delete the current repository or its tags.
+- Do not delete the pre-cutover repository or its tags.
 
 ## 7. Production promotion
 
-Do not point production hosts at next directly. Use a release promotion:
+Do not point production hosts at the canonical development branch directly. Use
+a release promotion:
 
-1. `opencyberrange-next` passes CI and staging checks.
-2. Create a release tag, e.g. `v2.1.0`.
-3. Promote the release to the production remote, either by:
-   - mirroring `next/main` to `opencyberrange-backup` after review; or
-   - adding `opencyberrange-next` as a remote on the hosts and switching
-     `GIT_REMOTE`/`--remote` at the same time.
+1. `opencyberrange` passes CI and staging checks.
+2. Create a release tag, e.g. `v2.3.3`.
+3. Promote the release through the production remote, either by:
+   - mirroring `main` to `opencyberrange-backup` after review; or
+   - pointing the hosts at `opencyberrange` and switching `GIT_REMOTE`/`--remote`
+     at the same time.
 4. Keep the existing host upgrade scripts on the production remote until the
    promotion is complete.
 
@@ -195,9 +232,8 @@ Confirm `LICENSE`, `NOTICE`, `LICENSING.md`, `BUILD_NOTICE.md`, and
 
 ## 10. Rollback
 
-- Current is archived at tag `final-current-2026-11-01` (the wiki-complete
-  snapshot) and remains on the production remote; later fix rounds continue on
-  `main` up to `v2.1.4`.
+- Current is frozen at `final-current-2026-11-01` and remains on the production
+  remote.
 - If next is wrong, delete or reset it and recreate from the tag.
 - Production continues to pull from the production remote until a deliberate
   promotion.

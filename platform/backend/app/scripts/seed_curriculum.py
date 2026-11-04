@@ -208,21 +208,22 @@ TRACKS = [   {   'name': 'Windows Penetration Testing',
                                          'public repository material'}]},
     {   'name': 'High School Cybersecurity',
         'slug': 'high-school',
-        'description': 'A browser-first pathway for grades 9-12. Start with digital '
-                       'safety, move into systems and networks, then apply defensive '
-                       'security in Grade 12.',
+        'description': 'A browser-first pathway for grades 9-12. Start with RangeBox '
+                       'basics, move into networks and browser source, practise '
+                       'defensive log reading in Grade 11, then apply those skills in '
+                       'Grade 12.',
         'icon': 'brain',
         'color': '#8B5CF6',
         'sort_order': 9,
         'levels': [   {   'level_number': 9,
-                          'name': 'Grade 9 · Digital Safety Foundations',
-                          'description': 'Accounts, privacy, phishing, and safe browsing'},
+                          'name': 'Grade 9 · RangeBox Basics',
+                          'description': 'Launching the practice desktop, terminal basics, and file discovery'},
                       {   'level_number': 10,
-                          'name': 'Grade 10 · Systems and Networks',
-                          'description': 'How computers, addresses, and the web fit together'},
+                          'name': 'Grade 10 · Networks and the Web',
+                          'description': 'Hostnames, HTTP responses, and browser source'},
                       {   'level_number': 11,
                           'name': 'Grade 11 · Defensive Security',
-                          'description': 'Logs, evidence, and responsible response'},
+                          'description': 'Reading logs, spotting suspicious requests, and explaining evidence'},
                       {   'level_number': 12,
                           'name': 'Grade 12 · Applied Cybersecurity',
                           'description': 'Community event challenges, metadata, and '
@@ -253,7 +254,20 @@ TRACKS = [   {   'name': 'Windows Penetration Testing',
                       {   'level_number': 5,
                           'name': 'Capstone Exploit Development',
                           'description': 'End-to-end exploitation, mitigation, and '
-                                         'disclosure'}]}]
+                                         'disclosure'}]},
+    {   'name': 'Digital Forensics',
+        'slug': 'forensics',
+        'description': 'Investigate memory and network evidence: reconstruct '
+                       'activity from volatile data and captured traffic.',
+        'icon': 'forensics',
+        'color': '#14B8A6',
+        'sort_order': 11,
+        'levels': [   {   'level_number': 1,
+                          'name': 'Memory Forensics',
+                          'description': 'Memory images, processes, and volatile evidence'},
+                      {   'level_number': 2,
+                          'name': 'Network Forensics',
+                          'description': 'Packet captures, voice traffic, and protocol reconstruction'}]}]
 
 # Additional levels not part of the main track definitions
 # (e.g., midterm/assessment levels inserted at non-sequential positions)

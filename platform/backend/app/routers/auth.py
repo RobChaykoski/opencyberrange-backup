@@ -15,8 +15,7 @@ import logging
 import qrcode
 import re
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 from app.database import get_db
 from app.models import (
     User, WireGuardConfig, Lab, CourseLabAssignment, CourseEnrollment,
@@ -34,6 +33,7 @@ from app.auth import (
     is_impersonating,
     create_impersonation_token,
     revoke_token,
+    revoke_all_user_tokens,
     _decode_token,
     oauth2_scheme,
 )
@@ -45,6 +45,7 @@ from app.services.activity import log_activity, EventTypes
 from app.services.audit import log_admin_action, AuditActions
 from app.services.erasure import erase_user, ErasureBlocked
 from app.services.settings_service import get_setting_fresh
+from app.services.privacy import redact_ip
 
 wireguard_manager = WireGuardManager()
 
@@ -52,7 +53,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Rate limiter for auth endpoints - stricter limits for security
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 
 
 def _registration_rate_limit() -> str:
@@ -278,6 +279,7 @@ async def login(
         "is_admin": user.role == 'admin' if hasattr(user, 'role') else user.is_admin,
         "is_approved": user.is_approved,
         "must_change_password": getattr(user, 'must_change_password', False),
+        "timezone": getattr(user, 'timezone', None),
     }
     
     # Add is_active if it exists
@@ -388,7 +390,7 @@ async def get_user_settings(
         "mfa_enabled": getattr(current_user, "mfa_enabled", False),
         "recovery_codes_remaining": recovery_count,
         "last_login_at": current_user.last_login_at,
-        "last_login_ip": current_user.last_login_ip,
+        "last_login_ip": redact_ip(current_user.last_login_ip),
     }
 
 @router.put("/settings")
@@ -460,7 +462,7 @@ async def list_sessions(
     return {
         "current": {
             "last_login_at": current_user.last_login_at,
-            "last_login_ip": current_user.last_login_ip,
+            "last_login_ip": redact_ip(current_user.last_login_ip),
         },
         "note": "Individual session tracking is not stored; use 'Sign out everywhere' to revoke all tokens.",
     }
@@ -470,8 +472,7 @@ async def revoke_all_sessions(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    from app.auth import revoke_all_user_tokens
-    revoke_all_user_tokens(db, current_user)
+    revoke_all_user_tokens(current_user.username)
     logger.info(f"User {current_user.username} revoked all sessions")
     return {"message": "All sessions revoked. Please log in again."}
 
@@ -577,7 +578,7 @@ async def export_user_data(
             "avatar_data": current_user.avatar_data,
             "created_at": current_user.created_at,
             "last_login_at": current_user.last_login_at,
-            "last_login_ip": current_user.last_login_ip,
+            "last_login_ip": redact_ip(current_user.last_login_ip),
             "timezone": current_user.timezone,
             "show_on_scoreboard": current_user.show_on_scoreboard,
             "scoreboard_name_mode": getattr(current_user, "scoreboard_name_mode", None) or "real_name",
@@ -588,7 +589,7 @@ async def export_user_data(
         },
         "vpn": (
             {
-                "client_ip": vpn.client_ip,
+                "client_ip": redact_ip(vpn.client_ip),
                 "public_key": vpn.public_key,
                 "created_at": vpn.created_at,
             }
@@ -675,7 +676,7 @@ async def export_user_data(
                 "target_type": event.target_type,
                 "target_label": event.target_label,
                 "detail": _json_or_raw(event.detail),
-                "ip_address": event.ip_address,
+                "ip_address": redact_ip(event.ip_address),
                 "created_at": event.created_at,
             }
             for event in activity
@@ -959,6 +960,7 @@ async def get_current_user_info(
             "role": "student" if imp_mode == 'role_course' else getattr(current_user, '_imp_mode', 'student'),
             "must_change_password": False,
             "mfa_enabled": False,
+            "timezone": getattr(current_user, 'timezone', None),
             "impersonating": True,
             "impersonation": {
                 "original_user": {
@@ -1006,6 +1008,7 @@ async def get_current_user_info(
         "role": current_user.role,
         "must_change_password": getattr(current_user, 'must_change_password', False),
         "mfa_enabled": bool(getattr(current_user, "mfa_enabled", False)),
+        "timezone": getattr(current_user, 'timezone', None),
         "show_on_scoreboard": getattr(current_user, "show_on_scoreboard", True),
         "scoreboard_name_mode": getattr(current_user, "scoreboard_name_mode", None) or "real_name",
     }
@@ -1392,10 +1395,18 @@ async def change_password(
         current_user.must_change_password = False
     
     db.commit()
-    
-    logger.info(f"User {current_user.username} changed their password")
 
-    return {"message": "Password changed successfully"}
+    # A password change invalidates every token that existed beforehand. This
+    # closes the window where a stolen token keeps working after the victim
+    # rotates their credentials.
+    revoke_all_user_tokens(current_user.username)
+
+    logger.info(f"User {current_user.username} changed their password and all sessions were revoked")
+
+    return {
+        "message": "Password changed successfully. Please log in again.",
+        "reauth_required": True,
+    }
 
 
 @router.post("/logout")

@@ -612,14 +612,16 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import axios from '../api/axios'
 import { useVpnStatus } from '../composables/useVpnStatus'
 import { usePoll } from '../composables/usePoll'
 import { useModules } from '../composables/useModules'
 import PrivacyDataPanel from '../components/PrivacyDataPanel.vue'
+import { getUserTimeZone } from '../utils/timezone'
 
 const route = useRoute()
+const router = useRouter()
 const { exerciseAuthoring, fetchModules } = useModules()
 const user = ref(null)
 const { vpnStatus, fetchVpnStatus, isVpnRegistered } = useVpnStatus()
@@ -1019,7 +1021,7 @@ const passwordSuccessMessage = ref('')
 const formatDate = (dateStr) => {
   if (!dateStr) return '-'
   const d = new Date(dateStr.endsWith('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z')
-  return d.toLocaleString('en-US', { timeZone: 'America/Chicago' })
+  return d.toLocaleString('en-US', { timeZone: getUserTimeZone() })
 }
 
 const validateNewPassword = () => {
@@ -1079,22 +1081,26 @@ const changePassword = async () => {
       confirm_password: passwordForm.confirmPassword
     })
     
-    passwordSuccessMessage.value = 'Password changed successfully!'
+    passwordSuccessMessage.value = 'Password changed successfully! Please sign in again.'
     
     // Clear form
     passwordForm.currentPassword = ''
     passwordForm.newPassword = ''
     passwordForm.confirmPassword = ''
     
-    // Update localStorage user object to clear must_change_password flag if set
-    const userObj = JSON.parse(localStorage.getItem('user') || '{}')
-    userObj.must_change_password = false
-    localStorage.setItem('user', JSON.stringify(userObj))
-    
+    // The backend revokes every outstanding token after a password change.
+    // Drop the invalid local session and return to the login page.
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+
     // Trigger App.vue reactivity update
     if (window.__updateAuthState) {
       window.__updateAuthState()
     }
+
+    setTimeout(() => {
+      router.push('/login')
+    }, 1500)
   } catch (error) {
     if (error.response?.data?.detail) {
       passwordErrorMessage.value = error.response.data.detail

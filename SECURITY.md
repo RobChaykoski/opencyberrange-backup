@@ -9,13 +9,13 @@ Security fixes land on the current release line. At the time of writing that is
 |---|---|
 | `v2.3.x` | Yes |
 | `v2.2.x` and earlier | No — upgrade to `v2.3.x` |
-| `opencyberrange-next` `main` | Yes (staging for the next release) |
+| `main` | Yes (development for the next release) |
 
 ## Reporting a vulnerability
 
 **Do not open a public issue for a security problem.**
 
-Report privately through GitHub's [private vulnerability reporting](https://github.com/RobChaykoski/opencyberrange-backup/security/advisories/new)
+Report privately through GitHub's [private vulnerability reporting](https://github.com/RobChaykoski/opencyberrange/security/advisories/new)
 or by email to the repository owner listed on the GitHub profile.
 
 Include:
@@ -60,6 +60,6 @@ synthetic reproduction.
 
 ## Dependency posture
 
-`pip-audit` and `npm audit --omit=dev` run in CI. At `v2.3.0` both report zero
+`pip-audit` and `npm audit --omit=dev` run in CI. At `v2.3.2` both report zero
 known advisories. When an advisory cannot be fixed immediately, it is recorded
 with an owner and an expiry in the release notes rather than ignored silently.

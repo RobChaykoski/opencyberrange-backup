@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Wave 0 records the current baseline on 3.11. Wave 1 adds 3.12/3.13
+        # after the runtime image and dependency upgrades.
+        python-version: ["3.11"]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: ocr_test
+          POSTGRES_PASSWORD: ocr_test
+          POSTGRES_DB: ocr_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ocr_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://ocr_test:ocr_test@127.0.0.1:5432/ocr_test
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: platform/backend/requirements*.txt
+
+      - name: Install backend dependencies
+        working-directory: platform/backend
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (baseline; non-blocking until legacy cleanup)
+        working-directory: platform/backend
+        continue-on-error: true
+        run: ruff check app
+
+      - name: Test
+        working-directory: platform/backend
+        run: pytest -q
+
+  frontend:
+    name: frontend (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Wave 0 records the current baseline on Node 18. Wave 1 moves this to
+        # Node 22 LTS (and then evaluates 24 LTS).
+        node-version: ["22"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: platform/frontend/package-lock.json
+
+      - name: Install
+        working-directory: platform/frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: platform/frontend
+        run: npm run lint
+
+      - name: Build
+        working-directory: platform/frontend
+        run: npm run build
+
+  compose:
+    name: compose config and images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Validate compose
+        working-directory: platform
+        env:
+          POSTGRES_USER: labuser
+          POSTGRES_PASSWORD: ci-only
+          POSTGRES_DB: labdb
+          DATABASE_URL: postgresql://labuser:ci-only@db:5432/labdb
+          JWT_SECRET: ci-only-jwt-secret-not-for-production
+          JWT_ALGORITHM: HS256
+          JWT_EXPIRATION_HOURS: "24"
+          SETUP_TOKEN: ci-only-setup-token
+          WG_SERVER_ENDPOINT: ci.invalid:51820
+          WG_SERVER_PUBLIC_KEY: ci-only-public-key
+          WG_API_URL: http://host.docker.internal:5000
+          WG_API_KEY: ci-only-api-key
+          WG_ENCRYPTION_KEY: ci-only-fernet-key
+          WG_NETWORK_BASE: "10.100"
+          WG_CLIENT_BASE: "10.0.0"
+          SERVER_PUBLIC_HOST: ci.invalid
+          CORS_ORIGINS: https://ci.invalid
+          LABS_HOST_PATH: ${{ github.workspace }}/platform/labs
+        run: docker compose -f docker-compose.prod.yml config >/dev/null
+
+      - name: Build backend
+        uses: docker/build-push-action@v6
+        with:
+          context: platform/backend
+          push: false
+          tags: ocr-backend:ci
+
+      - name: Build frontend
+        uses: docker/build-push-action@v6
+        with:
+          context: platform/frontend
+          push: false
+          tags: ocr-frontend:ci

@@ -28,13 +28,13 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from fpdf import FPDF
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 from sqlalchemy.orm import Session
 
 import requests as http_requests
 
 from app.auth import get_current_admin_user, get_current_instructor_user, create_access_token
+from app.timezones import resolve_timezone
 from app.config import settings
 from app.database import get_db
 from app.models import Lab, LabSession, User, FlagAttempt, LabCompletion, ExerciseTestResult, Course, CourseLabAssignment
@@ -42,17 +42,12 @@ from app.services.docker_manager import DockerManager, get_subnet_id, get_track_
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 
 docker_manager = DockerManager()
 
 # ── Timezone helper ────────────────────────────────────────────────────────
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
-
-LOCAL_TZ = ZoneInfo(os.environ.get("TZ", "America/Chicago"))
+LOCAL_TZ = resolve_timezone(os.environ.get("TZ"))
 
 # ── Constants ──────────────────────────────────────────────────────────────
 TESTER_IMAGE = "ocr-tester:latest"

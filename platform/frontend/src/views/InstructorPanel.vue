@@ -1086,6 +1086,7 @@ import axios from '../api/axios'
 import { usePrivacy } from '../composables/usePrivacy'
 import { useImpersonation } from '../composables/useImpersonation'
 import { useModules } from '../composables/useModules'
+import { getUserTimeZone } from '../utils/timezone'
 
 const { maskUsername, maskEmail } = usePrivacy()
 const { startImpersonation } = useImpersonation()
@@ -1311,7 +1312,7 @@ function copyToClipboard(text) {
 function formatDateShort(dt) {
   if (!dt) return '—'
   const d = new Date(dt.endsWith('Z') || dt.includes('+') ? dt : dt + 'Z')
-  return d.toLocaleDateString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', year: 'numeric' })
+  return d.toLocaleDateString('en-US', { timeZone: getUserTimeZone(), month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function courseStatusText(course) {

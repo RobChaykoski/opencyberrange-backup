@@ -117,6 +117,16 @@ class UserDetailResponse(BaseModel):
         from_attributes = True
 
 
+class FlagSubmitRequest(BaseModel):
+    """A student's flag submission.
+
+    Flags are short training tokens. The explicit type and length cap stop
+    malformed or oversized values from being hashed, logged, or stored.
+    """
+
+    flag: str = Field(..., min_length=1, max_length=100)
+
+
 class CreateUserRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr

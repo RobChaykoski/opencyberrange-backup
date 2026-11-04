@@ -22,6 +22,17 @@ CLEAN_SWEEP = "clean_sweep"
 STREAK = "streak"
 SHELL_SHOCKED = "shell_shocked"
 SOURCE_WHISPERER = "source_whisperer"
+MEMORY_MINER = "memory_miner"
+GHOST_IN_THE_RAM = "ghost_in_the_ram"
+VOICE_FROM_THE_WIRE = "voice_from_the_wire"
+SIP_WHISPERER = "sip_whisperer"
+RANGEBOX_ROOKIE = "rangebox_rookie"
+FILE_HUNTER = "file_hunter"
+HEADER_HUNTER = "header_hunter"
+SOURCE_SLEUTH = "source_sleuth"
+LOG_DETECTIVE = "log_detective"
+RANGEBOX_RANGER = "rangebox_ranger"
+FORENSICS_PATHFINDER = "forensics_pathfinder"
 
 ACHIEVEMENT_LABELS = {
     FIRST_BLOOD: "First Blood",
@@ -32,6 +43,17 @@ ACHIEVEMENT_LABELS = {
     STREAK: "On a Roll",
     SHELL_SHOCKED: "Shell Shocked",
     SOURCE_WHISPERER: "Source Whisperer",
+    MEMORY_MINER: "Memory Miner",
+    GHOST_IN_THE_RAM: "Ghost in the RAM",
+    VOICE_FROM_THE_WIRE: "Voice from the Wire",
+    SIP_WHISPERER: "SIP Whisperer",
+    RANGEBOX_ROOKIE: "RangeBox Rookie",
+    FILE_HUNTER: "File Hunter",
+    HEADER_HUNTER: "Header Hunter",
+    SOURCE_SLEUTH: "Source Sleuth",
+    LOG_DETECTIVE: "Log Detective",
+    RANGEBOX_RANGER: "RangeBox Ranger",
+    FORENSICS_PATHFINDER: "Forensics Pathfinder",
 }
 
 ACHIEVEMENT_DESCRIPTIONS = {
@@ -43,6 +65,17 @@ ACHIEVEMENT_DESCRIPTIONS = {
     STREAK: "Completed 3+ labs in a row with no hints and first attempt",
     SHELL_SHOCKED: "Found the command-injection bug and captured the flag on the first attempt without hints",
     SOURCE_WHISPERER: "Found the hidden export route without using hints",
+    MEMORY_MINER: "Completed the Windows memory analysis lab",
+    GHOST_IN_THE_RAM: "Completed the memory lab without using hints",
+    VOICE_FROM_THE_WIRE: "Reconstructed the VoIP call and captured the flag",
+    SIP_WHISPERER: "Completed the VoIP lab without hints on the first attempt",
+    RANGEBOX_ROOKIE: "Completed the first RangeBox exercise",
+    FILE_HUNTER: "Completed the RangeBox file hunt",
+    HEADER_HUNTER: "Completed the RangeBox network basics lab",
+    SOURCE_SLEUTH: "Completed the RangeBox browser and source lab",
+    LOG_DETECTIVE: "Read the access log and captured the flag",
+    RANGEBOX_RANGER: "Completed all four RangeBox basics exercises",
+    FORENSICS_PATHFINDER: "Completed both Digital Forensics exercises",
 }
 
 # The three browser-first DevFest starter exercises. These slugs are stable;
@@ -51,6 +84,21 @@ DEVFEST_LAB_SLUGS = (
     "high-school-12-1-devfest-community-portal",
     "software-security-1-1-hidden-export-route",
     "software-security-2-1-diagnostics-command-injection",
+)
+
+# RangeBox basics and Digital Forensics collections. The collection badges are
+# global, so they are reachable whether the exercises are assigned to a course
+# or played as standalone labs.
+RANGEBOX_BASIC_LAB_SLUGS = (
+    "high-school-9-1-rangebox-first-steps",
+    "high-school-9-2-rangebox-file-hunt",
+    "high-school-10-1-rangebox-network-basics",
+    "high-school-10-2-rangebox-browser-and-source",
+)
+
+FORENSICS_LAB_SLUGS = (
+    "forensics-1-1-windows-memory-volatility",
+    "forensics-2-1-voip-call-reconstruction",
 )
 
 # Triggers available to admin-defined achievements. The value is what the
@@ -82,6 +130,17 @@ BUILTIN_ACHIEVEMENT_ICONS = {
     STREAK: "\U0001F525",
     SHELL_SHOCKED: "\U0001F4A5",
     SOURCE_WHISPERER: "\U0001F50E",
+    MEMORY_MINER: "\U0001F9E0",
+    GHOST_IN_THE_RAM: "\U0001F47B",
+    VOICE_FROM_THE_WIRE: "\U0001F399\uFE0F",
+    SIP_WHISPERER: "\U0001F4DE",
+    RANGEBOX_ROOKIE: "\U0001F579\uFE0F",
+    FILE_HUNTER: "\U0001F5C2\uFE0F",
+    HEADER_HUNTER: "\U0001F4E1",
+    SOURCE_SLEUTH: "\U0001F50E",
+    LOG_DETECTIVE: "\U0001F4DC",
+    RANGEBOX_RANGER: "\U0001F3D5\uFE0F",
+    FORENSICS_PATHFINDER: "\U0001F9ED",
 }
 
 
@@ -163,6 +222,69 @@ def _award(db: Session, user_id: int, course_id: int | None, lab_id: int | None,
                   target_id=lab_id,
                   target_label=resolve_achievement_label(db, achievement_type),
                   commit=False)
+
+
+def _check_lab_badges(
+    db: Session,
+    user_id: int,
+    course_id: int | None,
+    lab: Lab,
+    completion: LabCompletion,
+):
+    """Award the hidden per-lab badges for the RangeBox and Forensics labs."""
+    if lab.slug == "forensics-1-1-windows-memory-volatility":
+        _award(db, user_id, course_id, lab.id, MEMORY_MINER)
+        if completion.hints_used == 0:
+            _award(db, user_id, course_id, lab.id, GHOST_IN_THE_RAM)
+    elif lab.slug == "forensics-2-1-voip-call-reconstruction":
+        _award(db, user_id, course_id, lab.id, VOICE_FROM_THE_WIRE)
+        if completion.hints_used == 0 and completion.attempts == 1:
+            _award(db, user_id, course_id, lab.id, SIP_WHISPERER)
+    elif lab.slug == "high-school-9-1-rangebox-first-steps":
+        _award(db, user_id, course_id, lab.id, RANGEBOX_ROOKIE)
+    elif lab.slug == "high-school-9-2-rangebox-file-hunt":
+        _award(db, user_id, course_id, lab.id, FILE_HUNTER)
+    elif lab.slug == "high-school-10-1-rangebox-network-basics":
+        _award(db, user_id, course_id, lab.id, HEADER_HUNTER)
+    elif lab.slug == "high-school-10-2-rangebox-browser-and-source":
+        _award(db, user_id, course_id, lab.id, SOURCE_SLEUTH)
+    elif lab.slug == "high-school-11-1-rangebox-log-detective":
+        _award(db, user_id, course_id, lab.id, LOG_DETECTIVE)
+
+    # Existing hidden software-security badges.
+    if (lab.slug == "software-security-2-1-diagnostics-command-injection"
+            and completion.hints_used == 0
+            and completion.attempts == 1):
+        _award(db, user_id, course_id, lab.id, SHELL_SHOCKED)
+    if (lab.slug == "software-security-1-1-hidden-export-route"
+            and completion.hints_used == 0):
+        _award(db, user_id, course_id, lab.id, SOURCE_WHISPERER)
+
+
+def _check_collection_achievements(db: Session, user_id: int):
+    """Award global collection badges for the new lab families."""
+    completed = {
+        row[0] for row in db.query(LabCompletion.lab_id).filter(
+            LabCompletion.user_id == user_id,
+            LabCompletion.flag_submitted.isnot(None),
+            LabCompletion.flag_submitted != "",
+        ).all()
+    }
+    if not completed:
+        return
+
+    def _lab_ids(slugs):
+        return {
+            row[0] for row in db.query(Lab.id).filter(Lab.slug.in_(slugs)).all()
+        }
+
+    rangebox_ids = _lab_ids(RANGEBOX_BASIC_LAB_SLUGS)
+    if rangebox_ids and rangebox_ids.issubset(completed):
+        _award(db, user_id, None, None, RANGEBOX_RANGER)
+
+    forensics_ids = _lab_ids(FORENSICS_LAB_SLUGS)
+    if forensics_ids and forensics_ids.issubset(completed):
+        _award(db, user_id, None, None, FORENSICS_PATHFINDER)
 
 
 def check_achievements(db: Session, user_id: int, lab_id: int):
@@ -307,14 +429,8 @@ def check_achievements(db: Session, user_id: int, lab_id: int):
                 and completion.time_spent_minutes < lab.duration_minutes * 0.5):
             _award(db, user_id, course_id, lab_id, SPEED_DEMON)
 
-        # --- hidden software-security lab badges ---
-        if (lab.slug == "software-security-2-1-diagnostics-command-injection"
-                and completion.hints_used == 0
-                and completion.attempts == 1):
-            _award(db, user_id, course_id, lab_id, SHELL_SHOCKED)
-        if (lab.slug == "software-security-1-1-hidden-export-route"
-                and completion.hints_used == 0):
-            _award(db, user_id, course_id, lab_id, SOURCE_WHISPERER)
+        # --- hidden per-lab badges (RangeBox, Forensics, Software Security) ---
+        _check_lab_badges(db, user_id, course_id, lab, completion)
 
         # --- clean_sweep: all assigned labs in course completed (course-aware) ---
         course_lab_ids = {
@@ -347,6 +463,8 @@ def check_achievements(db: Session, user_id: int, lab_id: int):
             db, user_id, course_id, course_lab_ids, valid_completions,
         )
 
+    _check_collection_achievements(db, user_id)
+
     db.commit()
 
 
@@ -368,21 +486,12 @@ def _check_global_achievements(
     ).all()
 
     # Hidden lab badges are per-lab, not per-course.
-    if (
-        lab.slug == "software-security-2-1-diagnostics-command-injection"
-        and completion.hints_used == 0
-        and completion.attempts == 1
-    ):
-        _award(db, user_id, None, lab.id, SHELL_SHOCKED)
-    if (
-        lab.slug == "software-security-1-1-hidden-export-route"
-        and completion.hints_used == 0
-    ):
-        _award(db, user_id, None, lab.id, SOURCE_WHISPERER)
+    _check_lab_badges(db, user_id, None, lab, completion)
 
     active_lab_ids = {
         row[0] for row in db.query(Lab.id).filter(Lab.is_active == True).all()
     }
+    _check_collection_achievements(db, user_id)
     _check_custom_achievements(db, user_id, None, active_lab_ids, completions)
 
 

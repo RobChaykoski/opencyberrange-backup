@@ -34,6 +34,22 @@ def _shared_container_native_subnet(client, container_name: str) -> str | None:
         return None
     return None
 
+
+def _lab_hostnames_by_offset(hostname_entries) -> Dict[str, List[str]]:
+    """Group lab.yaml hostnames by ip_offset for Docker network aliases."""
+    grouped: Dict[str, List[str]] = {}
+    for entry in hostname_entries or []:
+        if not isinstance(entry, dict):
+            continue
+        ip_offset = str(entry.get("ip_offset") or "").strip()
+        hostname = str(entry.get("hostname") or "").strip()
+        if not ip_offset or not hostname:
+            continue
+        aliases = grouped.setdefault(ip_offset, [])
+        if hostname not in aliases:
+            aliases.append(hostname)
+    return grouped
+
 # ── Shared container status cache ───────────────────────────────────
 # Prevents multiple concurrent polls from each doing slow socket checks.
 # TTL of 5 seconds — stale data is acceptable for a status indicator.
@@ -1277,15 +1293,20 @@ fi
         user_id: int,
         lab_slug: str,
         compose_content: str,
+        hostname_entries: Optional[List[dict]] = None,
     ) -> Dict[str, str]:
         """
         Create Docker network and containers for a lab session
-        
+
         Args:
             user_id: User ID for network isolation
             lab_slug: Lab identifier
             compose_content: Docker Compose YAML content
-            
+            hostname_entries: lab.yaml hostname mappings
+                ([{"ip_offset": "96", "hostname": "voice.lab"}, ...]). These are
+                registered as Docker network aliases so the names students see
+                in workbooks resolve without editing /etc/hosts.
+
         Returns:
             Dict with network_id and subnet
         """
@@ -1296,6 +1317,12 @@ fi
         second_octet, third_octet = get_subnet_id(user_id, lab_slug)
         network_name = f"lab_{user_id}_{lab_slug}".lower()
         subnet = f"10.{second_octet}.{third_octet}.0/24"
+
+        # lab.yaml declares the names students see in the workbook (for
+        # example "voice.lab"), while compose only declares the container
+        # hostname ("voice-evidence"). Register both as Docker DNS aliases so
+        # the workbook names resolve inside RangeBox and lab containers.
+        hostnames_by_offset = _lab_hostnames_by_offset(hostname_entries)
         
         # CRITICAL: Remove ALL existing networks for this user_id first
         # This prevents conflicts when switching between labs quickly
@@ -1602,9 +1629,15 @@ fi
             ip_off = labels.get("ip_offset", "10")
             svc_ip = f"10.{second_octet}.{third_octet}.{ip_off}"
             net_cfg = {"ipv4_address": svc_ip}
+            aliases: List[str] = []
             hostname = svc_cfg.get("hostname")
             if hostname:
-                net_cfg["aliases"] = [hostname]
+                aliases.append(str(hostname))
+            for lab_hostname in hostnames_by_offset.get(str(ip_off), []):
+                if lab_hostname not in aliases:
+                    aliases.append(lab_hostname)
+            if aliases:
+                net_cfg["aliases"] = aliases
             svc_override["networks"] = {"default": net_cfg}
             # Per-SERVICE injection: only the service the template's env_contract
             # scoped a var to receives it, so FLAG/creds never leak into peer
@@ -1758,13 +1791,22 @@ fi
                     # Wrong IP -- disconnect first, then reconnect below
                     network.disconnect(container)
 
-                # Connect to network with specific IP and friendly DNS alias
+                # Connect to network with specific IP and friendly DNS aliases
                 connect_kwargs = {"ipv4_address": ip_address}
+                aliases: List[str] = []
                 hostname = service_config.get("hostname")
                 if hostname:
-                    connect_kwargs["aliases"] = [hostname]
+                    aliases.append(str(hostname))
+                for lab_hostname in hostnames_by_offset.get(str(ip_offset), []):
+                    if lab_hostname not in aliases:
+                        aliases.append(lab_hostname)
+                if aliases:
+                    connect_kwargs["aliases"] = aliases
                 network.connect(container, **connect_kwargs)
-                logger.info(f"Connected {container_name} to network with IP {ip_address} (alias={hostname})")
+                logger.info(
+                    f"Connected {container_name} to network with IP {ip_address} "
+                    f"(aliases={aliases})"
+                )
             except Exception as e:
                 logger.error(f"Failed to connect {container_name} to network: {e}")
         

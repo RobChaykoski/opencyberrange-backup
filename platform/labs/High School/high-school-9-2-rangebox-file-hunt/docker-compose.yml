@@ -1,0 +1,31 @@
+services:
+  files:
+    mem_limit: 128m
+    cpus: 0.15
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          memory: 128M
+        reservations:
+          cpus: '0.05'
+          memory: 64M
+    build:
+      context: ../_shared
+      dockerfile: Dockerfile
+    hostname: rangebox-files
+    labels:
+      ip_offset: "92"
+    environment:
+      LAB_MODE: "filehunt"
+      FLAG: "OCR{f1nd_th3_r34l_f1l3}"
+      TITLE: "RangeBox File Hunt"
+      PORT: "8080"
+    read_only: true
+    tmpfs:
+      - /tmp:size=8m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped

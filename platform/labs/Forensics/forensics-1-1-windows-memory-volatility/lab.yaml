@@ -1,0 +1,116 @@
+name: "Windows Memory Analysis with Volatility"
+description: "Work through a Windows Server 2008 memory image with Volatility 3. Identify the operating system, inspect running processes, and extract local account hashes from registry data captured in memory."
+difficulty: intermediate
+category: forensics
+duration_minutes: 50
+visibility: public
+flag: "OCR{e19ccf75}"
+
+tools:
+  - volatility3
+  - ssh
+  - terminal
+  - rangebox
+
+objectives:
+  - Connect to an isolated analyst workstation over SSH
+  - Identify a Windows memory image with the Volatility info plugin
+  - List processes and explain what a process list can show an investigator
+  - Extract local account hashes from registry hives in memory
+  - Explain why memory can contain credentials that disk evidence does not
+
+scenario: |
+  A Windows Server 2008 training VM was captured before the machine was
+  rebuilt. The memory image and a matching Volatility symbol file are on an
+  analyst workstation in the lab.
+
+  Your job is to answer three questions from the image: what operating system
+  was running, which processes were alive, and what local account hashes were
+  present in memory. The final token is built from the first 8 characters of
+  the `student` account's NTLM hash.
+
+  The image is read-only evidence. Work carefully, record the commands you use,
+  and remember that a memory image can contain sensitive material. This is a
+  fictional training system; the accounts are not real production credentials.
+
+workbook: "wiki/range/forensics/CH_FOR01_Memory_Forensics/01_Windows_Memory_Volatility/"
+
+hostnames:
+  - ip_offset: "95"
+    hostname: "memory.lab"
+    description: "Memory-forensics analyst workstation (SSH 22)"
+
+topology:
+  nodes:
+    - id: "analyst"
+      label: "Memory-forensics analyst workstation"
+      type: "server"
+      ip_offset: "95"
+      ports: [22]
+      services: ["ssh", "volatility3"]
+      x: 1
+      y: 1
+
+credentials:
+  - username: "analyst"
+    password: "M3m0ry_4n4lys1s"
+    role: "analyst"
+    description: "Analyst workstation SSH access"
+
+hints:
+  - text: |
+      Connect to the analyst workstation from the RangeBox terminal:
+
+      ssh analyst@memory.lab
+
+      The password is in the lab credentials panel. Once you are in, read the
+      case brief:
+
+      cat ~/evidence/case_brief.txt
+    unlock_after_minutes: 0
+
+  - text: |
+      Start with the image information and the process list:
+
+      vol -s ~/symbols -f ~/evidence/memdump.mem windows.info
+      vol -s ~/symbols -f ~/evidence/memdump.mem windows.pslist | head -30
+
+      `windows.info` tells you the build and architecture. `windows.pslist`
+      shows the processes that were running when the image was captured.
+    unlock_after_minutes: 10
+
+  - text: |
+      Extract the local account hashes:
+
+      vol -s ~/symbols -f ~/evidence/memdump.mem windows.hashdump
+
+      Find the row for the `student` account. The NTLM hash is the fourth
+      tab-separated field. Take its first 8 characters and wrap them in
+      OCR{...}.
+    unlock_after_minutes: 25
+
+test:
+  steps:
+    - name: "Analyst workstation is reachable over SSH"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'echo connected' 2>&1"
+      expect: "connected"
+      timeout: 20
+
+    - name: "Memory image is present"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'test -f /home/analyst/evidence/memdump.mem && echo memory_found' 2>&1"
+      expect: "memory_found"
+      timeout: 20
+
+    - name: "Volatility identifies the Windows build"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'vol -s /home/analyst/symbols -f /home/analyst/evidence/memdump.mem windows.info 2>/dev/null | grep -o \"6001.18000\" | head -1' 2>&1"
+      expect: "6001.18000"
+      timeout: 90
+
+    - name: "Student NTLM hash prefix is recoverable"
+      command: "sshpass -p '{cred.analyst.pass}' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {cred.analyst.user}@{target.analyst} 'vol -s /home/analyst/symbols -f /home/analyst/evidence/memdump.mem windows.hashdump 2>/dev/null | grep \"^student\" | cut -f4 | cut -c1-8' 2>&1"
+      expect: "e19ccf75"
+      timeout: 120
+
+    - name: "Assembled flag"
+      command: "echo 'OCR{e19ccf75}'"
+      expect: "OCR{e19ccf75}"

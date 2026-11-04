@@ -1,0 +1,109 @@
+# OpenCyberRange version policy and Wave 0 baseline.
+#
+# "latest supported GA" means the newest stable release that is still
+# supported upstream and compatible with the rest of the selected stack.
+# It does not mean the newest possible release of every package.
+#
+# Runtime targets are provisional until the Wave 0/2 compatibility checks
+# finish. Do not upgrade lab or RangeBox images in this programme.
+
+policy:
+  name: latest-supported-ga
+  reviewed: "2026-11-02"
+  platform_only: true
+  rules:
+    - no_alpha_beta_rc_or_nightly_for_platform_services
+    - prefer_latest_patch_and_minor_in_a_supported_major
+    - major_upgrades_require_their_own_wave
+    - pin_exact_versions_and_image_digests
+    - freeze_intentionally_vulnerable_lab_software
+    - record_every_exception_with_an_expiry
+
+runtime:
+  python:
+    current: "3.11"
+    target: "3.13"
+    candidate: "3.14"
+    status: "compatibility-testing"
+  node:
+    current: "18"
+    target: "22"
+    candidate: "24"
+    status: "compatibility-testing"
+  postgres:
+    current: "15"
+    target: "17"
+    status: "planned-major-upgrade"
+
+backend:
+  fastapi: "0.162.0"
+  uvicorn: "0.54.0"
+  sqlalchemy: "2.1.6"
+  alembic: "1.20.1"
+  pydantic: "2.14.2"
+  pydantic-settings: "2.16.2"
+  psycopg: "3.3.6"
+  pyjwt: "2.15.1"
+  pwdlib: "0.3.1"
+  bcrypt: "5.0.0"
+  cryptography: "50.0.2"
+  docker-sdk: "7.2.0"
+  aiohttp: "3.14.5"
+  requests: "2.34.2"
+  apscheduler: "3.10.4"
+  fpdf2: "2.9.0"
+  matplotlib: ">=3.10"
+  qrcode: "8.2"
+  slowapi: "0.1.10"
+  python-multipart: "0.0.33"
+
+frontend:
+  declared:
+    vue: "^3.3.4"
+    vue-router: "^4.2.5"
+    axios: "^1.21.0"
+    chart.js: "^4.4.7"
+    vue-chartjs: "^5.3.2"
+    marked: "^18.1.2"
+    dompurify: "^3.4.17"
+    "@novnc/novnc": "^1.7.0"
+    sortablejs: "^1.15.7"
+    vite: "^8.3.5"
+    "@vitejs/plugin-vue": "^6.0.10"
+    eslint: "^9.15.0"
+    eslint-plugin-vue: "^9.31.0"
+    globals: "^15.12.0"
+  locked:
+    vue: "3.5.44"
+    vue-router: "4.6.4"
+    axios: "1.21.0"
+    chart.js: "4.5.1"
+    vue-chartjs: "5.3.3"
+    marked: "18.1.2"
+    dompurify: "3.4.17"
+    "@novnc/novnc": "1.7.0"
+    sortablejs: "1.15.7"
+    vite: "8.3.5"
+    "@vitejs/plugin-vue": "6.0.10"
+    eslint: "9.39.5"
+    eslint-plugin-vue: "9.33.0"
+    globals: "15.15.0"
+
+infrastructure:
+  backend_base: "python:3.11-slim"
+  frontend_builder: "node:22-alpine"
+  frontend_server: "nginx:alpine"
+  postgres_image: "postgres:15-alpine"
+  ci_checkout: "actions/checkout@v7"
+  ci_codeql: "github/codeql-action@v4"
+  ci_trivy: "aquasecurity/trivy-action@0.36.0"
+  docs:
+    mkdocs: "1.6.1"
+    mkdocs-material: "9.8.0"
+    pymdown-extensions: "11.0.1"
+
+out_of_scope:
+  - "platform/labs/**"
+  - "RangeBox/**"
+  - "UbuntuBox/**"
+  - "RemnuxBox/**"

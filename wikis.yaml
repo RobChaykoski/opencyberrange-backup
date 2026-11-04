@@ -49,6 +49,11 @@ tracks:
     docs_dir: Workbook
     auth: student
     theme: blue
+  forensics:
+    config: mkdocs-forensics.yml
+    docs_dir: Workbook
+    auth: student
+    theme: teal
 reference:
   manual:
     config: mkdocs-manual-lite.yml

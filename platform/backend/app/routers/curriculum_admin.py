@@ -9,8 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 
 from app.database import get_db
 from app.auth import get_current_admin_user
@@ -19,7 +18,7 @@ from app.schemas import TrackCreate, TrackUpdate, LevelCreate, LevelUpdate, Reor
 from app.services.audit import log_admin_action, AuditActions
 
 router = APIRouter()
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 logger = logging.getLogger(__name__)
 
 

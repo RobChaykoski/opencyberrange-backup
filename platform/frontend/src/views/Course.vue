@@ -313,6 +313,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import axios from '../api/axios'
 import { usePrivacy } from '../composables/usePrivacy'
+import { getUserTimeZone } from '../utils/timezone'
 
 const route = useRoute()
 const { maskUsername, maskEmail } = usePrivacy()
@@ -652,7 +653,7 @@ async function saveLabOrder() {
 function formatDateShort(dt) {
   if (!dt) return '—'
   const d = new Date(dt.endsWith('Z') || dt.includes('+') ? dt : dt + 'Z')
-  return d.toLocaleDateString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', year: 'numeric' })
+  return d.toLocaleDateString('en-US', { timeZone: getUserTimeZone(), month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function copyInviteCode() {

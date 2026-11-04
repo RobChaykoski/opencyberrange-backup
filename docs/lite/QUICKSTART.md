@@ -37,9 +37,12 @@ for details.
 ## 2. Clone the repository
 
 ```bash
-git clone https://github.com/syntaxoverride/opencyberrange.git opencyberrange
+git clone https://github.com/RobChaykoski/opencyberrange.git opencyberrange
 cd opencyberrange
 ```
+
+Prefer direct Docker Compose over the installer? See the
+[Docker Compose Deployment Manual](../../Manual-Lite/00_Server_Deployment/08_Docker_Deploy_Manual.md).
 
 ## 3. Run the installer
 

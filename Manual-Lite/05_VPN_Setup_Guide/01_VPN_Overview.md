@@ -32,6 +32,9 @@ flowchart LR
 
 The tunnel carries only the lab subnets. Your normal internet traffic does not go through the VPN, so browsing and other connections stay on your regular network while the tunnel is up. See [03_Installing_WireGuard_on_Linux.md](03_Installing_WireGuard_on_Linux.md) for the exact subnets the configuration routes.
 
+!!! note "Lab DNS over VPN"
+    `.lab` hostnames such as `voice.lab` resolve automatically inside RangeBox. When you use the VPN from your own machine, the tunnel does not provide lab DNS. If a workbook hostname does not resolve, copy the hostname and IP shown in the Active Lab panel into your machine's `/etc/hosts` file (or use the IP directly).
+
 ## Choosing a path
 
 Use the flow below to pick the access method that fits your machine and network.

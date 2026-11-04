@@ -1,0 +1,49 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":timezone(America/Chicago)"
+  ],
+  "rangeStrategy": "pin",
+  "separateMajorMinor": true,
+  "separateMultipleMajor": true,
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchManagers": ["pip_requirements"],
+      "groupName": "backend Python dependencies",
+      "labels": ["dependencies", "backend"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "groupName": "frontend dependencies",
+      "labels": ["dependencies", "frontend"]
+    },
+    {
+      "matchDatasources": ["docker"],
+      "groupName": "container images",
+      "pinDigests": true,
+      "labels": ["dependencies", "docker"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions",
+      "labels": ["dependencies", "ci"]
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true,
+      "labels": ["dependencies", "major"]
+    },
+    {
+      "matchPackageNames": ["/^mkdocs/", "/^mkdocs-material/", "/^pymdown-extensions/"],
+      "groupName": "docs toolchain",
+      "labels": ["dependencies", "docs"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"]
+  }
+}

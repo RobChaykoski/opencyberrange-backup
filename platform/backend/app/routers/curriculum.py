@@ -12,8 +12,7 @@ import hmac
 import json
 import logging
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 
 from app.database import get_db, SessionLocal
 from app.models import (
@@ -40,12 +39,13 @@ from app.services.achievements import (
     resolve_achievement_icon,
     resolve_achievement_label,
 )
+from app.schemas import FlagSubmitRequest
 
 
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 
 docker_manager = DockerManager()
 
@@ -1050,7 +1050,7 @@ def _assert_lab_accessible(db: Session, user, lab):
 async def submit_flag(
     request: Request,
     lab_id: int,
-    flag_data: dict,
+    flag_data: FlagSubmitRequest,
     background_tasks: BackgroundTasks,
     course_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
@@ -1144,7 +1144,7 @@ async def submit_flag(
         )
     
     # Get and normalize flag (strip whitespace only, preserve case)
-    submitted_flag = flag_data.get("flag", "").strip()
+    submitted_flag = flag_data.flag.strip()
     
     if not submitted_flag:
         raise HTTPException(status_code=400, detail="Flag is required")

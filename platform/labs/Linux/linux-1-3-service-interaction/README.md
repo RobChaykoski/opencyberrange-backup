@@ -266,4 +266,4 @@ You've successfully:
 
 - [ProFTPD Documentation](http://www.proftpd.org/docs/)
 - [FTP Protocol (RFC 959)](https://tools.ietf.org/html/rfc959)
-- [Banner Grabbing Techniques](https://owasp.org/www-community/Banner_Grabbing)
+- [Banner Grabbing Techniques](https://wstg.owasp.org/v4.1/4-Web_Application_Security_Testing/01-Information_Gathering/02-Fingerprint_Web_Server/)

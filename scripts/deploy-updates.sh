@@ -463,7 +463,7 @@ install_systemd_service() {
     cat > /etc/systemd/system/ocr-platform.service << SVCEOF
 [Unit]
 Description=OpenCyberRange Docker Compose Platform
-Documentation=https://github.com/syntaxoverride/OpenCyberRange
+Documentation=https://github.com/RobChaykoski/opencyberrange
 After=docker.service docker.socket
 Requires=docker.service
 Before=ocr-vpn-firewall.service

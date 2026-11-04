@@ -1,0 +1,89 @@
+name: "RangeBox Network Basics"
+description: "Use the RangeBox terminal to talk to a small web service. Read a status code, inspect response headers, and find the training token that never appears in the page body."
+difficulty: beginner
+category: network
+duration_minutes: 25
+visibility: public
+flag: "OCR{h34d3rs_t3ll_st0r13s}"
+
+tools:
+  - rangebox
+  - terminal
+  - browser
+
+objectives:
+  - Explain the difference between a hostname and an IP address
+  - Request a URL with curl and read the status line
+  - Inspect HTTP response headers
+  - Describe why response metadata matters in investigations
+
+scenario: |
+  A small classroom service reports whether it is healthy. The page says very
+  little, but the response headers carry a training token for this exercise.
+
+  You will use RangeBox to ask the service for its status and then read the
+  whole response, not just the body. This is a basic skill for web
+  troubleshooting and incident triage.
+
+  The service is fictional and isolated. You cannot affect anything outside the
+  lab.
+
+workbook: "wiki/range/high-school/CH_HS10_Grade_10_RangeBox_Basics/01_Network_Basics/"
+
+hostnames:
+  - ip_offset: "93"
+    hostname: "network.lab"
+    description: "RangeBox network-basics target (HTTP 8080)"
+
+topology:
+  nodes:
+    - id: "network"
+      label: "RangeBox network-basics target"
+      type: "server"
+      ip_offset: "93"
+      ports: [8080]
+      services: ["http"]
+      x: 1
+      y: 1
+
+hints:
+  - text: |
+      Launch RangeBox and open a terminal. Ask the service for its status:
+
+      curl -i http://network.lab:8080/status.json
+
+      The -i option tells curl to include the response headers.
+    unlock_after_minutes: 0
+
+  - text: |
+      Read the response from top to bottom:
+
+      1. The status line, for example HTTP/1.1 200 OK
+      2. The headers, one per line
+      3. A blank line
+      4. The response body
+
+      Look for a header named X-OCR-Token.
+    unlock_after_minutes: 8
+
+  - text: |
+      If the header is hard to read, filter for it:
+
+      curl -s -D - -o /dev/null http://network.lab:8080/status.json | grep -i x-ocr-token
+
+      The value after the colon is the training token.
+    unlock_after_minutes: 15
+
+test:
+  steps:
+    - name: "Status endpoint responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.network}:8080/status.json"
+      expect: "200"
+      timeout: 20
+
+    - name: "Response includes the training-token header"
+      command: >-
+        curl -s -D - -o /dev/null http://{target.network}:8080/status.json
+        | python3 -c "import sys; print(next(line.split(':', 1)[1].strip() for line in sys.stdin if line.lower().startswith('x-ocr-token:')))"
+      expect: "OCR{h34d3rs_t3ll_st0r13s}"
+      timeout: 20

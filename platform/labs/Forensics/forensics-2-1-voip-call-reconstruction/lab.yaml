@@ -1,0 +1,132 @@
+name: "VoIP Call Reconstruction"
+description: "A help desk call was captured as SIP signalling and RTP media. Reconstruct the G.711 audio, listen to the message, and review the call metadata to recover the training token."
+difficulty: intermediate
+category: forensics
+duration_minutes: 45
+visibility: public
+flag: "OCR{v01c3_c4ll_r3c0n}"
+
+tools:
+  - wireshark
+  - tshark
+  - python3
+  - rangebox
+  - terminal
+
+objectives:
+  - Identify SIP signalling and RTP media in a packet capture
+  - Read the SDP offer to find the negotiated codec and RTP port
+  - Extract the RTP payload and rebuild a playable WAV file
+  - Review SIP headers for call metadata
+  - Explain why voice traffic needs the same evidence handling as other data
+
+scenario: |
+  The help desk received a suspicious call. The network team captured the SIP
+  signalling and the RTP media stream from the call before the caller hung up.
+
+  The visible packet list is mostly UDP. Your job is to separate the signalling
+  from the media, reconstruct the audio, listen to the message, and then review
+  the SIP headers for the training token.
+
+  The evidence package includes `transcript.txt` as an audio-free path. Use it
+  if you cannot play the reconstructed recording; it points at the same SIP
+  evidence as the audio.
+
+  The capture is fictional training data. The audio was synthesized for this
+  exercise, and the people and phone numbers are not real.
+
+workbook: "wiki/range/forensics/CH_FOR02_Network_Forensics/01_VoIP_Call_Reconstruction/"
+
+hostnames:
+  - ip_offset: "96"
+    hostname: "voice.lab"
+    description: "VoIP evidence server (HTTP 8080)"
+
+topology:
+  nodes:
+    - id: "evidence"
+      label: "VoIP evidence server"
+      type: "server"
+      ip_offset: "96"
+      ports: [8080]
+      services: ["http"]
+      x: 1
+      y: 1
+
+hints:
+  - text: |
+      Download the capture from http://voice.lab:8080/voip-call.pcap and open it in
+      Wireshark. Start with Statistics > Protocol Hierarchy, then filter for
+      `sip`.
+
+      Find the INVITE and the `200 OK`. The SDP body tells you which RTP port
+      and codec the call used.
+    unlock_after_minutes: 0
+
+  - text: |
+      The media is RTP on UDP port 40002, using payload type 0 (PCMU / G.711
+      u-law). In tshark, tell the RTP dissector about the port:
+
+      tshark -r voip-call.pcap -d udp.port==40002,rtp -Y rtp \
+        -T fields -e rtp.payload
+
+      Each payload field is hex. Concatenate the hex, convert it to bytes, and
+      treat the result as 8 kHz mono u-law audio.
+    unlock_after_minutes: 12
+
+  - text: |
+      The evidence package includes `reconstruct.py`, which rebuilds the WAV:
+
+      curl -O http://voice.lab:8080/reconstruct.py
+      python3 reconstruct.py voip-call.pcap call.wav
+
+      Listen to the message, then read the SIP INVITE headers. The training
+      token is in the `Subject` header.
+    unlock_after_minutes: 25
+
+test:
+  steps:
+    - name: "Capture is downloadable"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.evidence}:8080/voip-call.pcap"
+      expect: "200"
+      timeout: 20
+
+    - name: "Transcript is available for the audio-free path"
+      command: "curl -s http://{target.evidence}:8080/transcript.txt | grep -c 'Subject line'"
+      expect: "1"
+      timeout: 20
+
+    - name: "Capture contains a SIP INVITE"
+      command: "curl -s http://{target.evidence}:8080/voip-call.pcap | strings | grep -c 'INVITE sip:'"
+      expect: "1"
+      timeout: 20
+
+    - name: "Capture contains the SDP media offer"
+      command: "curl -s http://{target.evidence}:8080/voip-call.pcap | strings | grep -c 'm=audio 40000 RTP/AVP 0'"
+      expect: "1"
+      timeout: 20
+
+    - name: "Capture contains the training token"
+      command: "curl -s http://{target.evidence}:8080/voip-call.pcap | strings | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{v01c3_c4ll_r3c0n}"
+      timeout: 20
+
+    - name: "Capture is large enough to hold the RTP media"
+      command: >-
+        curl -s http://{target.evidence}:8080/voip-call.pcap
+        | python3 -c "import sys; print('large' if len(sys.stdin.buffer.read()) > 100000 else 'small')"
+      expect: "large"
+      timeout: 20
+
+    - name: "Reconstruction helper produces a 12 second WAV"
+      command: >-
+        curl -s -o /tmp/voip-call.pcap http://{target.evidence}:8080/voip-call.pcap &&
+        curl -s -o /tmp/reconstruct.py http://{target.evidence}:8080/reconstruct.py &&
+        python3 /tmp/reconstruct.py /tmp/voip-call.pcap /tmp/call.wav >/dev/null 2>&1 &&
+        python3 -c "import wave; w=wave.open('/tmp/call.wav'); print(round(w.getnframes()/w.getframerate()))"
+      expect: "12"
+      timeout: 40
+
+    - name: "Assembled flag"
+      command: "echo 'OCR{v01c3_c4ll_r3c0n}'"
+      expect: "OCR{v01c3_c4ll_r3c0n}"

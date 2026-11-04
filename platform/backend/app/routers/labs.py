@@ -236,6 +236,14 @@ async def spawn_lab(
     lab_id = lab.id
     lab_name = lab.name
     compose_content = lab.compose_file or ""
+    hostname_entries = []
+    if lab.hostnames:
+        try:
+            parsed = json.loads(lab.hostnames)
+            if isinstance(parsed, list):
+                hostname_entries = parsed
+        except (TypeError, ValueError):
+            logger.warning("Could not parse hostnames for lab %s", lab_slug)
     diagnostic = bool(is_diagnostic)
     req_client_ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else None)
 
@@ -265,6 +273,7 @@ async def spawn_lab(
                         user_id=user_id,
                         lab_slug=lab_slug,
                         compose_content=compose_content,
+                        hostname_entries=hostname_entries,
                     ),
                 )
 

@@ -11,8 +11,7 @@ import os
 import logging
 import tempfile
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 
 from app.database import get_db
 from app.models import (
@@ -31,7 +30,7 @@ from app.schemas import (
     UpdateLabRequest,
     LabCreate,
 )
-from app.auth import get_current_admin_user, get_current_instructor_user, get_password_hash, validate_privileged_password
+from app.auth import get_current_admin_user, get_current_instructor_user, get_password_hash, validate_privileged_password, revoke_all_user_tokens
 from app import entitlement
 from app.services import settings_service
 from app.services.docker_manager import DockerManager, get_subnet_id, RangeBoxCapacityError
@@ -48,7 +47,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Rate limiter for admin endpoints
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 
 docker_manager = DockerManager()
 wireguard_manager = WireGuardManager(
@@ -612,7 +611,11 @@ async def reset_password(
     user.failed_attempts = 0
     user.locked_at = None
     db.commit()
-    
+
+    # An admin-driven reset must also invalidate outstanding sessions; otherwise
+    # whoever had the old password (or a stolen token) stays logged in.
+    revoke_all_user_tokens(user.username)
+
     # Audit log
     log_admin_action(
         action=AuditActions.PASSWORD_RESET,
@@ -1572,6 +1575,14 @@ async def impersonate_launch_lab(
 
     try:
         compose_content = (lab.compose_file or "").strip()
+        hostname_entries = []
+        if lab.hostnames:
+            try:
+                parsed = _json.loads(lab.hostnames)
+                if isinstance(parsed, list):
+                    hostname_entries = parsed
+            except (TypeError, ValueError):
+                pass
 
         if compose_content:
             # Lab has containers — start them
@@ -1582,6 +1593,7 @@ async def impersonate_launch_lab(
                     user_id=target_user_id,
                     lab_slug=lab_slug,
                     compose_content=compose_content,
+                    hostname_entries=hostname_entries,
                 )
             )
             second_octet, third_octet = get_subnet_id(target_user_id, lab_slug)
@@ -2486,11 +2498,11 @@ async def get_lab_details_admin(
 def _ensure_curriculum_structure(db: Session):
     """Create any missing tracks and levels before scanning labs.
 
-    Older installations can be missing a whole track even though the lab
-    directories and curriculum definitions are present. Scanning exercises
-    should leave the operator with usable labs, not "track not found" warnings,
-    so add only the missing structure. Existing tracks and levels are never
-    renamed or overwritten.
+    Older installations can be missing a whole track (for example Digital
+    Forensics) even though the lab directories and curriculum definitions are
+    present. Scanning exercises should leave the operator with usable labs, not
+    a list of "track not found" warnings, so add only the missing structure.
+    Existing tracks and levels are never renamed or overwritten.
     """
     from app.scripts.seed_curriculum import EXTRA_LEVELS, TRACKS
 

@@ -2,6 +2,10 @@
 
 Status: planning document. Nothing in this document changes runtime behaviour.
 
+Wave 0 scaffold is present: `versions.yaml`, `docs/SUPPORTED-VERSIONS.md`,
+`docs/WAVE-0-BASELINE.md`, `scripts/report-versions.py`, CI workflows, and
+Renovate configuration.
+
 ## 1. What "latest supported GA" means
 
 Do not equate this with "newest version of everything". The target is the newest
@@ -75,8 +79,8 @@ Declared ranges are older than the lockfile. The lockfile currently resolves:
 | Backend base | `python:3.11-slim` | Debian slim, unpinned patch |
 | Frontend base | `node:18-alpine` → `nginx:alpine` | Node EOL; Nginx floating |
 | Docker CLI | installed from Docker apt repo in the backend image | Pin or track host compatibility |
-| Docs | MkDocs 1.6.1 / Material 9.7.4 / pymdown 10.8 | MkDocs 2.0 is currently incompatible with Material |
-| CI | `actions/checkout@v4`, CodeQL v3, Trivy 0.28.0 | No build/test workflow exists yet |
+| Docs | MkDocs 1.6.1 / Material 9.8.0 / pymdown 11.0.1 | MkDocs 2.0 is currently incompatible with Material |
+| CI | `actions/checkout@v7`, CodeQL v4, Trivy 0.36.0 | No build/test workflow exists yet |
 
 ### Lab images (separate upgrade tier)
 
@@ -99,14 +103,19 @@ platform upgrade.
 
 ## 3. Repo strategy
 
-Recommended: a separate staging repository, not a branch on the production
+Status: implemented. The staging repository was created as
+`RobChaykoski/opencyberrange-next` and later renamed to
+`RobChaykoski/opencyberrange`; see `CUTOVER-TO-CANONICAL-REPO.md`.
+
+A separate staging repository was used instead of a branch on the production
 repo.
 
-- Name: `opencyberrange-next` (decided).
-- Start from `backup/main` at the current commit, preserving history.
+- Name: `opencyberrange` (canonical; formerly `opencyberrange-next`).
+- Started from `backup/main` at the current commit, preserving history.
 - Preserve `LICENSE`, `NOTICE`, `LICENSING.md`, `BUILD_NOTICE.md`, and
   `THIRD_PARTY_NOTICES.md`; this project is PolyForm Noncommercial.
-- Keep the current `backup` remote as `current` so fixes can be cherry-picked.
+- Keep the pre-cutover `backup` remote as `current` so fixes can be
+  cherry-picked.
 - Protect `main`; require PR + CI.
 - Use short-lived branches per wave:
   - `upgrade/00-baseline`
@@ -120,7 +129,7 @@ repo.
   - `upgrade/08-labs-infrastructure`
   - `upgrade/09-labs-frozen-review`
 
-Bootstrap:
+Bootstrap (historical record):
 
 ```bash
 git clone https://github.com/RobChaykoski/opencyberrange-backup.git opencyberrange-next
@@ -304,7 +313,7 @@ release on that work.
 
 | Decision | Choice |
 |---|---|
-| Repo | New `RobChaykoski/opencyberrange-next`, cloned from `backup/main` |
+| Repo | `RobChaykoski/opencyberrange` (formerly `opencyberrange-next`), cloned from `backup/main` |
 | Runtime | Start Python 3.13 + Node 22 LTS; let Wave 0/2 compatibility testing decide whether to move to 3.14/Node 24 |
 | PostgreSQL | 17, in its own deployment with a dump/restore runbook |
 | Lab/RangeBox images | Out of scope for this programme; platform only |
@@ -313,9 +322,9 @@ release on that work.
 
 ## 10. First actions
 
-1. Create `RobChaykoski/opencyberrange-next` from `backup/main`; preserve
-   `LICENSE`, `NOTICE`, `LICENSING.md`, `BUILD_NOTICE.md`, and
-   `THIRD_PARTY_NOTICES.md`.
+1. Create `RobChaykoski/opencyberrange` (originally named
+   `opencyberrange-next`) from `backup/main`; preserve `LICENSE`, `NOTICE`,
+   `LICENSING.md`, `BUILD_NOTICE.md`, and `THIRD_PARTY_NOTICES.md`.
 2. Protect `main`; require PR + CI.
 3. Add `docs/SUPPORTED-VERSIONS.md`, `scripts/report-versions.py`, CI, and
    Renovate.

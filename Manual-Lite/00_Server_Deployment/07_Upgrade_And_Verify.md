@@ -20,13 +20,13 @@ rebuilding, while preserving the generated `frontend/wiki` tree.
 
 ```bash
 git clone --depth 1 --branch main \
-  https://github.com/RobChaykoski/opencyberrange-backup.git /tmp/ocr-upgrade
+  https://github.com/RobChaykoski/opencyberrange.git /tmp/ocr-upgrade
 
 sudo bash /tmp/ocr-upgrade/scripts/verify-upgrade.sh \
-  --repo "$HOME/opencyberrange" --remote backup --branch main
+  --repo "$HOME/opencyberrange" --remote origin --branch main
 
 sudo bash /tmp/ocr-upgrade/scripts/upgrade-from-backup.sh \
-  --repo "$HOME/opencyberrange" --remote backup --branch main
+  --repo "$HOME/opencyberrange" --remote origin --branch main
 ```
 
 The existing deployment must be a Git checkout, and it must have a remote that
@@ -35,8 +35,17 @@ contains the branch being deployed:
 ```bash
 cd "$HOME/opencyberrange"
 git remote -v
-git remote add backup https://github.com/RobChaykoski/opencyberrange-backup.git
+git remote add origin https://github.com/RobChaykoski/opencyberrange.git
 ```
+
+Existing deployments that still use a remote named `backup` can either keep it
+and pass `--remote backup`, or point it at the canonical repository:
+
+```bash
+git remote set-url backup https://github.com/RobChaykoski/opencyberrange.git
+```
+
+The scripts prefer `origin` and fall back to `backup` when `origin` is absent.
 
 For a private repository, configure a deploy key or personal access token on
 the server first. The upgrade fetches the remote itself, so you do not need to
@@ -47,7 +56,7 @@ copy files to the server by hand.
 Run from the repository root on the server:
 
 ```bash
-sudo bash scripts/verify-upgrade.sh --remote backup --branch main
+sudo bash scripts/verify-upgrade.sh --remote origin --branch main
 ```
 
 The verification is read-only. It checks:
@@ -88,7 +97,7 @@ bash /tmp/ocr-upgrade/scripts/post-install-check.sh \
 ## 2. Upgrade
 
 ```bash
-sudo bash scripts/upgrade-from-backup.sh --remote backup --branch main
+sudo bash scripts/upgrade-from-backup.sh --remote origin --branch main
 ```
 
 The upgrade performs the following in order:

@@ -9,8 +9,7 @@ from contextlib import asynccontextmanager
 import logging
 import os
 
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.database import engine, Base
@@ -25,6 +24,7 @@ from app.routers import modules as modules_router
 from app.routers import rangebox as rangebox_router
 from app.services.scheduler import start_scheduler, shutdown_scheduler
 from app.config import settings
+from app.ratelimit import create_limiter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,15 +39,9 @@ logger = logging.getLogger(__name__)
 # The default "memory://" keeps counters PER PROCESS, so with N uvicorn
 # workers the effective limit is up to N times the configured value. Set a
 # shared backend whenever the API runs multi-worker and strict limits matter.
-# NOTE: several routers (auth.py, admin.py, settings.py, ...) build their own
-# Limiter instances that stay on in-process memory until they read this same
-# variable; until then their limits also multiply per worker.
-_RATELIMIT_STORAGE_URI = os.environ.get("RATELIMIT_STORAGE_URI", "memory://")
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=["100/minute"],
-    storage_uri=_RATELIMIT_STORAGE_URI,
-)
+# NOTE: routers build their own Limiter instances via app.ratelimit so their
+# limits stay in sync with the same shared storage backend.
+limiter = create_limiter(default_limits=["100/minute"])
 
 # Scheduler leader election. Every uvicorn worker runs the lifespan below, so
 # without a guard each worker would start its own copy of the background

@@ -14,7 +14,7 @@ The Active Lab panel slides up on the track page. From top to bottom it shows:
 - **Scenario:** the situation and goal, rendered from the lab's brief.
 - **Objectives:** the list of things to accomplish.
 - **Exercise Network:** the subnet for the lab, plus a "Your targets:" list of per-node IPs when the lab provides them. When it does not, the section reads "Scan the network to discover target machines."
-- **Target Hostnames:** a snippet you can add to your `/etc/hosts` file.
+- **Target Hostnames:** the names workbook steps use. They resolve automatically inside RangeBox. If you connect over VPN from your own machine, add the same hostnames to your `/etc/hosts` file.
 - **Open Workbook:** a button that opens the lab's workbook in a new tab.
 - **Submit Flag:** the form where you enter your answer. See [Submitting Flags](07_Submitting_Flags.md).
 - **Hints:** time-gated help. See [Using Hints](08_Using_Hints.md).

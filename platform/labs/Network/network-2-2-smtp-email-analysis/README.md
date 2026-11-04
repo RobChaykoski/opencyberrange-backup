@@ -380,5 +380,5 @@ You've successfully:
 
 - [SMTP Protocol (RFC 5321)](https://tools.ietf.org/html/rfc5321)
 - [tshark Man Page](https://www.wireshark.org/docs/man-pages/tshark.html)
-- [Email Security Best Practices (NIST)](https://csrc.nist.gov/publications/detail/sp/800-177/final)
+- [Email Security Best Practices (NIST)](https://csrc.nist.gov/pubs/sp/800/177/r1/final)
 - [Data Exfiltration Detection Techniques](https://www.sans.org/reading-room/whitepapers/detection/detecting-dns-tunneling-34152)

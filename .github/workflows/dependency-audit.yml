@@ -1,0 +1,43 @@
+name: Dependency audit
+
+on:
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: dependency audit (baseline, non-blocking)
+    runs-on: ubuntu-latest
+    # Wave 0 records the findings. Flip to blocking after the relevant
+    # dependency wave has removed the known exceptions.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: platform/backend/requirements*.txt
+
+      - name: Python audit
+        working-directory: platform/backend
+        run: |
+          python -m pip install pip-audit
+          pip-audit -r requirements.txt
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: platform/frontend/package-lock.json
+
+      - name: npm audit
+        working-directory: platform/frontend
+        run: |
+          npm ci
+          npm audit --omit=dev

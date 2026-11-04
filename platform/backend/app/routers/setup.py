@@ -13,8 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 
 from app.database import get_db
 from app.models import User
@@ -23,7 +22,7 @@ from app.auth import get_password_hash, create_access_token
 from app.services.settings_service import seed_defaults, get_setting, set_setting
 
 router = APIRouter()
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 logger = logging.getLogger(__name__)
 
 

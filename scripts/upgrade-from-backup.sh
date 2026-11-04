@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Upgrade an OpenCyberRange server from the GitHub backup repository.
+# Upgrade an OpenCyberRange server from the configured Git remote.
+#
+# The historical "from-backup" file name is retained so existing runbooks and
+# deployed copies keep working.
 #
 # The script:
 #   1. backs up the database, users, .env, compose files, and certificates
@@ -11,7 +14,7 @@
 #
 # Usage:
 #   sudo bash scripts/upgrade-from-backup.sh
-#   sudo bash scripts/upgrade-from-backup.sh --remote backup --update-users
+#   sudo bash scripts/upgrade-from-backup.sh --remote origin --update-users
 #   sudo bash scripts/upgrade-from-backup.sh --help
 #
 # The user export contains password hashes. The backup directory is created
@@ -28,7 +31,7 @@ TARGET_REPO=""
 BACKUP_ROOT="${BACKUP_ROOT:-$HOME/opencyberrange-backups}"
 BACKUP_RETENTION_DAYS="${BACKUP_RETENTION_DAYS:-30}"
 ERASURE_LEDGER_PATH="${ERASURE_LEDGER_PATH:-/workbook/erasure-ledger.jsonl}"
-REMOTE="${GIT_REMOTE:-backup}"
+REMOTE="${GIT_REMOTE:-origin}"
 BRANCH="${GIT_BRANCH:-main}"
 DB_USER="${DB_USER:-}"
 DB_NAME="${DB_NAME:-}"
@@ -53,7 +56,8 @@ Options:
   --repo DIR            Existing OpenCyberRange deployment to upgrade (a Git
                         checkout with .env and docker-compose.yml at its root,
                         or platform/.env for the development layout)
-  --remote NAME         Git remote to upgrade from (default: backup, then origin)
+  --remote NAME         Git remote to upgrade from (default: origin, then the
+                        legacy backup remote)
   --branch NAME         Git branch to upgrade to (default: main)
   --backup-root DIR     Where to create the timestamped backup
   --db-user USER        PostgreSQL user (default: POSTGRES_USER from platform/.env)
@@ -212,9 +216,9 @@ if [[ -z "$DB_NAME" ]]; then
 fi
 
 if ! repo_git remote get-url "$REMOTE" >/dev/null 2>&1; then
-  if [[ "$REMOTE" == "backup" ]] && repo_git remote get-url origin >/dev/null 2>&1; then
-    warn "remote 'backup' not found; using 'origin'"
-    REMOTE=origin
+  if [[ "$REMOTE" == "origin" ]] && repo_git remote get-url backup >/dev/null 2>&1; then
+    warn "remote 'origin' not found; using the legacy 'backup' remote"
+    REMOTE=backup
   else
     fail "git remote '$REMOTE' does not exist"
   fi

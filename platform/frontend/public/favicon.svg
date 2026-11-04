@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="OpenCyberRange">
+  <defs>
+    <linearGradient id="ring" x1="48" y1="40" x2="208" y2="216" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect x="6" y="6" width="244" height="244" rx="57" fill="#091122" stroke="#1e40af" stroke-width="2.5"/>
+  <g fill="none" stroke="#22d3ee" stroke-width="5.5" stroke-linecap="round" opacity=".75">
+    <path d="M27 57V27h30M199 27h30v30M229 199v30h-30M57 229H27v-30"/>
+  </g>
+  <circle cx="128" cy="128" r="73" fill="none" stroke="url(#ring)" stroke-width="13"/>
+  <g fill="none" stroke="#60a5fa" stroke-width="7.5" stroke-linecap="round">
+    <path d="M63 96a70 70 0 0 1 15-25"/>
+    <path d="M193 96a70 70 0 0 0-15-25" transform="rotate(90 128 128)"/>
+    <path d="M63 96a70 70 0 0 1 15-25" transform="rotate(180 128 128)"/>
+    <path d="M63 96a70 70 0 0 1 15-25" transform="rotate(270 128 128)"/>
+  </g>
+  <g stroke="#22d3ee" stroke-width="9.5" stroke-linecap="round">
+    <path d="M128 86V70M128 186v-16M86 128H70M186 128h-16"/>
+  </g>
+  <circle cx="128" cy="128" r="23" fill="#34d399" opacity=".22"/>
+  <circle cx="128" cy="128" r="16" fill="#34d399" opacity=".45"/>
+  <circle cx="128" cy="128" r="10" fill="#34d399"/>
+</svg>

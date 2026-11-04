@@ -388,10 +388,15 @@
                   <div v-if="hostname.description" class="hostname-desc">{{ hostname.description }}</div>
                 </div>
               </div>
+              <p class="hostname-dns-note">Lab DNS resolves these names automatically inside RangeBox.</p>
               <div class="hosts-file-section">
                 <p class="hosts-file-hint">
-                  <template v-if="activeLab.hostnames.some(h => h.ip)">Add these lines to <code>/etc/hosts</code>:</template>
-                  <template v-else>After scanning, add discovered IPs to <code>/etc/hosts</code>:</template>
+                  <template v-if="activeLab.hostnames.some(h => h.ip)">
+                    Connecting over VPN? If your own machine does not resolve <code>.lab</code> names, add these lines to <code>/etc/hosts</code>:
+                  </template>
+                  <template v-else>
+                    Connecting over VPN? After scanning, add discovered IPs to <code>/etc/hosts</code>:
+                  </template>
                 </p>
                 <pre class="hosts-file-content">{{ activeLab.hostnames.map(h => (h.ip || '<target_ip>') + '    ' + h.hostname).join('\n') }}</pre>
               </div>
@@ -2496,6 +2501,25 @@ watch(timeRemaining, (val) => {
 .ics-tech-chip--impair-process-control .ics-tech-chip__tactic { color: #f87171; }
 .ics-tech-chip--impact { border-left-color: #ef4444; }
 .ics-tech-chip--impact .ics-tech-chip__tactic { color: #ef4444; }
+
+.hostname-dns-note {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #34d399;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.hostname-dns-note::before {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 8px #34d399;
+  flex: 0 0 auto;
+}
 
 .hosts-file-hint {
   font-size: 0.8rem;

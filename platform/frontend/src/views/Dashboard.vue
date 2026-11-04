@@ -212,6 +212,14 @@
               >{{ os.label }}</button>
             </div>
 
+            <div class="vpn-dns-note">
+              <strong>DNS note:</strong> lab hostnames such as <code>voice.lab</code> and
+              <code>review.lab</code> resolve automatically inside RangeBox. The VPN tunnel does
+              not provide lab DNS to your machine, so if a workbook hostname does not resolve
+              over VPN, add the hostnames shown in the Active Lab panel to
+              <code>/etc/hosts</code>.
+            </div>
+
             <!-- Linux -->
             <template v-if="instructionsOs === 'linux'">
               <div class="instruction-step">
@@ -1165,6 +1173,26 @@ onMounted(() => {
 
 .instructions-content {
   padding: 0 1.5rem 1.5rem;
+}
+
+.vpn-dns-note {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.75rem 0.9rem;
+  margin: 0.25rem 0 1rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.vpn-dns-note strong {
+  color: var(--text-primary);
+}
+
+.vpn-dns-note code {
+  color: var(--text-primary);
 }
 
 /* OS selector inside the instructions card; reuses the image-toggle look */

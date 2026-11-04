@@ -59,3 +59,47 @@ def test_submit_requires_auth(client, db_schema, test_lab):
         json={"flag": "OCR{anything}"},
     )
     assert resp.status_code == 401
+
+
+def test_oversized_flag_is_rejected(client, auth_headers, test_lab):
+    resp = _submit(client, auth_headers, test_lab.id, "OCR{" + ("A" * 400) + "}")
+    assert resp.status_code == 422
+    assert "flag" in resp.text.lower()
+
+
+def test_non_string_flag_is_rejected(client, auth_headers, test_lab):
+    resp = client.post(
+        f"/api/exercises/labs/{test_lab.id}/submit-flag",
+        json={"flag": ["OCR{not-a-string}"]},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 422
+    assert "flag" in resp.text.lower()
+
+
+def test_null_flag_is_rejected(client, auth_headers, test_lab):
+    resp = client.post(
+        f"/api/exercises/labs/{test_lab.id}/submit-flag",
+        json={"flag": None},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 422
+
+
+def test_missing_flag_is_rejected(client, auth_headers, test_lab):
+    resp = client.post(
+        f"/api/exercises/labs/{test_lab.id}/submit-flag",
+        json={},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 422
+
+
+def test_extra_json_keys_are_ignored(client, auth_headers, test_lab, test_flag):
+    resp = client.post(
+        f"/api/exercises/labs/{test_lab.id}/submit-flag",
+        json={"flag": test_flag, "unexpected": "ignored"},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["correct"] is True

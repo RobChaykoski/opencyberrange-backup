@@ -1,0 +1,84 @@
+name: "RangeBox Browser and Source"
+description: "Open a page in the RangeBox browser, then look at the HTML the browser received. Find the training token in a source comment and learn why comments should be reviewed before publishing."
+difficulty: beginner
+category: web
+duration_minutes: 20
+visibility: public
+flag: "OCR{v13w_th3_s0urc3}"
+
+tools:
+  - rangebox
+  - browser
+  - terminal
+
+objectives:
+  - Open a page in the RangeBox browser
+  - View the page source
+  - Recognise an HTML comment
+  - Explain why source comments can leak information
+
+scenario: |
+  A staff notes page looks almost empty. The visible page is not the whole
+  document, though: the browser also received HTML comments that are not shown
+  on screen.
+
+  You will open the page in RangeBox, view its source, and find the training
+  token in a comment. Then you will try the same thing with curl to see that the
+  browser and the terminal receive the same document.
+
+  The page is fictional. It contains no real staff data.
+
+workbook: "wiki/range/high-school/CH_HS10_Grade_10_RangeBox_Basics/02_Browser_and_Source/"
+
+hostnames:
+  - ip_offset: "94"
+    hostname: "web.lab"
+    description: "RangeBox browser-basics target (HTTP 8080)"
+
+topology:
+  nodes:
+    - id: "web"
+      label: "RangeBox browser-basics target"
+      type: "server"
+      ip_offset: "94"
+      ports: [8080]
+      services: ["http"]
+      x: 1
+      y: 1
+
+hints:
+  - text: |
+      Launch RangeBox and open the browser. Visit:
+
+      http://web.lab:8080/staff-notes.html
+
+      The page looks almost empty. That is intentional.
+    unlock_after_minutes: 0
+
+  - text: |
+      View the page source. In most browsers you can right-click the page and
+      choose **View Page Source**, or press Ctrl+U.
+
+      Look for text between <!-- and -->. That is an HTML comment.
+    unlock_after_minutes: 8
+
+  - text: |
+      You can also download the page with curl:
+
+      curl http://web.lab:8080/staff-notes.html
+
+      Search the output for OCR{...}. The token is in the comment near the end of
+      the document.
+    unlock_after_minutes: 15
+
+test:
+  steps:
+    - name: "Staff notes page responds"
+      command: "curl -s -o /dev/null -w '%{http_code}' http://{target.web}:8080/staff-notes.html"
+      expect: "200"
+      timeout: 20
+
+    - name: "Page source contains the training token"
+      command: "curl -s http://{target.web}:8080/staff-notes.html | grep -o 'OCR{[^}]*}'"
+      expect: "OCR{v13w_th3_s0urc3}"
+      timeout: 20

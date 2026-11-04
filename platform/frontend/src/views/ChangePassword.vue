@@ -195,13 +195,13 @@ const changePassword = async () => {
       confirm_password: form.confirmPassword
     })
     
-    successMessage.value = 'Password changed successfully! Redirecting...'
+    successMessage.value = 'Password changed successfully! Please sign in again.'
     
-    // Update localStorage user object to clear must_change_password flag
-    const user = JSON.parse(localStorage.getItem('user') || '{}')
-    user.must_change_password = false
-    localStorage.setItem('user', JSON.stringify(user))
-    
+    // The backend revokes every outstanding token after a password change.
+    // Drop the now-invalid local session before routing to the login page.
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+
     // Trigger App.vue reactivity update
     if (window.__updateAuthState) {
       window.__updateAuthState()
@@ -209,7 +209,7 @@ const changePassword = async () => {
     
     // Redirect after short delay
     setTimeout(() => {
-      router.push('/dashboard')
+      router.push('/login')
     }, 1500)
   } catch (error) {
     const detail = error.response?.data?.detail

@@ -342,5 +342,5 @@ You've successfully:
 - [tshark Man Page](https://www.wireshark.org/docs/man-pages/tshark.html)
 - [Wireshark Display Filter Reference](https://www.wireshark.org/docs/dfref/)
 - [FTP Protocol (RFC 959)](https://tools.ietf.org/html/rfc959)
-- [SANS: Network Forensics with Wireshark](https://www.sans.org/blog/a-quick-practical-reference-for-tcpdump/)
+- [tcpdump Documentation](https://www.tcpdump.org/)
 - [Wireshark/tshark User's Guide](https://www.wireshark.org/docs/wsug_html_chunked/)

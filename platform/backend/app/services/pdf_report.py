@@ -4,11 +4,10 @@ Uses fpdf2 to generate downloadable PDF reports.
 """
 
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 from fpdf import FPDF
 from typing import List
 
-LOCAL_TZ = ZoneInfo("America/Chicago")
+from app.timezones import resolve_timezone
 
 
 def _sanitize_for_pdf(text: str) -> str:
@@ -55,6 +54,7 @@ def generate_student_report(
     course: dict,
     lab_scores: List[dict],
     achievements: List[dict],
+    timezone_name: str | None = None,
 ) -> bytes:
     """Generate a PDF grade report for a single student.
 
@@ -74,13 +74,17 @@ def generate_student_report(
     )
     pdf.alias_nb_pages()
     pdf.set_auto_page_break(auto=True, margin=20)
-    _add_student_page(pdf, student, course, lab_scores, achievements)
+    _add_student_page(
+        pdf, student, course, lab_scores, achievements,
+        resolve_timezone(timezone_name),
+    )
     return pdf.output()
 
 
 def generate_class_report(
     course: dict,
     students_data: List[dict],
+    timezone_name: str | None = None,
 ) -> bytes:
     """Generate a PDF with one page per student.
 
@@ -98,6 +102,7 @@ def generate_class_report(
     pdf.alias_nb_pages()
     pdf.set_auto_page_break(auto=True, margin=20)
 
+    local_tz = resolve_timezone(timezone_name)
     for entry in students_data:
         _add_student_page(
             pdf,
@@ -105,6 +110,7 @@ def generate_class_report(
             course,
             entry["lab_scores"],
             entry["achievements"],
+            local_tz,
         )
 
     return pdf.output()
@@ -116,6 +122,7 @@ def _add_student_page(
     course: dict,
     lab_scores: List[dict],
     achievements: List[dict],
+    local_tz,
 ):
     """Add a single student report page to the PDF."""
     pdf.add_page()
@@ -200,7 +207,7 @@ def _add_student_page(
 
     # Table header
     col_widths = [62, 20, 22, 20, 22, 44]
-    headers = ["Lab", "Score", "Attempts", "Hints", "Time", "Completed (CT)"]
+    headers = ["Lab", "Score", "Attempts", "Hints", "Time", f"Completed ({local_tz.key})"]
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_fill_color(59, 130, 246)
     pdf.set_text_color(255, 255, 255)
@@ -234,7 +241,7 @@ def _add_student_page(
             if isinstance(completed, datetime):
                 if completed.tzinfo is None:
                     completed = completed.replace(tzinfo=timezone.utc)
-                completed = completed.astimezone(LOCAL_TZ).strftime("%Y-%m-%d %H:%M")
+                completed = completed.astimezone(local_tz).strftime("%Y-%m-%d %H:%M")
             pdf.cell(col_widths[5], 6, str(completed), border=0, fill=True, align="C")
         else:
             pdf.set_text_color(180, 180, 180)
@@ -269,7 +276,7 @@ def _add_student_page(
     pdf.set_text_color(150, 150, 150)
     pdf.cell(
         0, 6,
-        f"Generated: {datetime.now(timezone.utc).astimezone(LOCAL_TZ).strftime('%Y-%m-%d %H:%M %Z')} | OpenCyberRange",
+        f"Generated: {datetime.now(timezone.utc).astimezone(local_tz).strftime('%Y-%m-%d %H:%M %Z')} | OpenCyberRange",
         ln=True, align="C"
     )
 
@@ -303,6 +310,7 @@ def generate_dashboard_report(
     pulse: List[dict],
     pulse_granularity: str,
     events: List[dict],
+    timezone_name: str | None = None,
 ) -> bytes:
     """Generate a PDF report for a filtered dashboard view.
 
@@ -319,6 +327,7 @@ def generate_dashboard_report(
         events: Activity events (already scoped/filtered), newest first.
     """
     title = _sanitize_for_pdf(filters.get("range_label", "Dashboard Report"))
+    local_tz = resolve_timezone(timezone_name)
     pdf = DashboardReportPDF(title)
     pdf.alias_nb_pages()
     pdf.set_auto_page_break(auto=True, margin=20)
@@ -347,7 +356,7 @@ def generate_dashboard_report(
     pdf.set_x(14)
     start_lbl = filters.get("start_local", "")
     end_lbl = filters.get("end_local", "")
-    pdf.cell(0, 5, f"Window: {start_lbl} to {end_lbl} (CT)", ln=True)
+    pdf.cell(0, 5, f"Window: {start_lbl} to {end_lbl} ({local_tz.key})", ln=True)
     pdf.set_y(box_y + box_h + 6)
 
     # Student details section
@@ -377,7 +386,7 @@ def generate_dashboard_report(
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(3)
 
-    _draw_pulse_chart(pdf, pulse, pulse_granularity)
+    _draw_pulse_chart(pdf, pulse, pulse_granularity, local_tz)
     pdf.ln(4)
 
     # Per-student summary (when not single-student)
@@ -425,7 +434,7 @@ def generate_dashboard_report(
     pdf.ln(3)
 
     col_widths = [36, 38, 36, 80]
-    headers = ["Time (CT)", "User", "Event", "Target"]
+    headers = [f"Time ({local_tz.key})", "User", "Event", "Target"]
     pdf.set_font("Helvetica", "B", 9)
     pdf.set_fill_color(59, 130, 246)
     pdf.set_text_color(255, 255, 255)
@@ -445,7 +454,7 @@ def generate_dashboard_report(
         if isinstance(ts, datetime):
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=timezone.utc)
-            ts_str = ts.astimezone(LOCAL_TZ).strftime("%m-%d %H:%M:%S")
+            ts_str = ts.astimezone(local_tz).strftime("%m-%d %H:%M:%S")
         else:
             ts_str = str(ts or "-")[:19].replace("T", " ")
 
@@ -471,14 +480,14 @@ def generate_dashboard_report(
     pdf.set_text_color(150, 150, 150)
     pdf.cell(
         0, 6,
-        f"Generated: {datetime.now(timezone.utc).astimezone(LOCAL_TZ).strftime('%Y-%m-%d %H:%M %Z')} | OpenCyberRange",
+        f"Generated: {datetime.now(timezone.utc).astimezone(local_tz).strftime('%Y-%m-%d %H:%M %Z')} | OpenCyberRange",
         ln=True, align="C"
     )
 
     return pdf.output()
 
 
-def _draw_pulse_chart(pdf: FPDF, pulse: List[dict], granularity: str):
+def _draw_pulse_chart(pdf: FPDF, pulse: List[dict], granularity: str, local_tz):
     """Render pulse buckets as a grouped bar chart with X/Y axes."""
     # Outer block
     outer_x = 12
@@ -571,7 +580,7 @@ def _draw_pulse_chart(pdf: FPDF, pulse: List[dict], granularity: str):
     def _parse_bucket(bucket_key: str):
         try:
             d = datetime.fromisoformat(bucket_key.replace("Z", "+00:00"))
-            return d.astimezone(LOCAL_TZ)
+            return d.astimezone(local_tz)
         except Exception:
             return None
 
@@ -617,7 +626,7 @@ def _draw_pulse_chart(pdf: FPDF, pulse: List[dict], granularity: str):
     pdf.set_xy(outer_x, outer_y - 3)
     pdf.cell(30, 3, "Count", ln=False)
     # X-axis title under the labels
-    time_label = "Date (CT)" if granularity == "day" else "Time / Date (CT)"
+    time_label = f"Date ({local_tz.key})" if granularity == "day" else f"Time / Date ({local_tz.key})"
     pdf.set_xy(plot_x, outer_y + outer_h - 3.2)
     pdf.cell(plot_w, 3, time_label, align="C")
 

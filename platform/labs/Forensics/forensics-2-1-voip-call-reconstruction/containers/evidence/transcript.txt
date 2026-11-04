@@ -1,0 +1,19 @@
+VOIP CALL RECONSTRUCTION - CALL TRANSCRIPT
+==========================================
+
+This is the accessibility transcript of the synthesized audio carried in
+voip-call.pcap. It is provided so the exercise can be completed without
+playing audio. The transcript describes where the evidence is; it does not
+contain the flag.
+
+Speaker: caller
+Approximate duration: 12 seconds
+
+Transcript:
+
+  "Hello, this is a recorded help desk call. The training token is in the
+   Subject line of this call. Listen carefully, then review the SIP messages
+   in the capture."
+
+Next step: follow the transcript's direction and inspect the SIP INVITE in
+the capture. The Subject header holds the training token.

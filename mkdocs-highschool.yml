@@ -62,6 +62,18 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - "CH HS09 -- Grade 9 RangeBox Basics":
+    - Introduction: CH_HS09_Grade_9_RangeBox_Basics/00_Introduction.md
+    - "First Steps": CH_HS09_Grade_9_RangeBox_Basics/01_First_Steps.md
+    - "File Hunt": CH_HS09_Grade_9_RangeBox_Basics/02_File_Hunt.md
+  - "CH HS10 -- Grade 10 RangeBox Basics":
+    - Introduction: CH_HS10_Grade_10_RangeBox_Basics/00_Introduction.md
+    - "Network Basics": CH_HS10_Grade_10_RangeBox_Basics/01_Network_Basics.md
+    - "Browser and Source": CH_HS10_Grade_10_RangeBox_Basics/02_Browser_and_Source.md
+  - "CH HS11 -- Grade 11 Defensive Security":
+    - Introduction: CH_HS11_Grade_11_Defensive_Security/00_Introduction.md
+    - "Log Detective": CH_HS11_Grade_11_Defensive_Security/01_Log_Detective.md
+    - "Chapter Review": CH_HS11_Grade_11_Defensive_Security/02_Chapter_Review.md
   - "CH HS12 -- Grade 12 Applied Cybersecurity":
     - Introduction: CH_HS12_Grade_12_Applied_Cybersecurity/00_Introduction.md
     - "DevFest Community Portal": CH_HS12_Grade_12_Applied_Cybersecurity/01_DevFest_Community_Portal.md

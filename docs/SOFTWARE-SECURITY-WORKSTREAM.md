@@ -1,7 +1,7 @@
 # Software Security Workstream
 
 Status: starter track implemented; pending deployment and browser rehearsal.
-Target: current production tree, not `opencyberrange-next`.
+Target: the canonical production tree.
 
 ## 1. Goal
 

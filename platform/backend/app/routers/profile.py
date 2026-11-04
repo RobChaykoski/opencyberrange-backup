@@ -12,8 +12,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, Response
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from app.ratelimit import create_limiter
 from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_active_user
@@ -42,7 +41,7 @@ from app.services.achievements import (
 from app.services.profile_report import generate_profile_transcript
 
 router = APIRouter()
-limiter = Limiter(key_func=get_remote_address)
+limiter = create_limiter()
 
 
 def _iso(value: Optional[datetime]) -> Optional[str]:
@@ -247,7 +246,7 @@ async def profile_transcript_pdf(
 ):
     """Render the profile summary as a PDF transcript."""
     summary = _build_profile_summary(db, current_user)
-    pdf_bytes = generate_profile_transcript(summary)
+    pdf_bytes = generate_profile_transcript(summary, current_user.timezone)
     filename = f"OpenCyberRange-Transcript-{current_user.username}.pdf"
     return Response(
         content=pdf_bytes,
