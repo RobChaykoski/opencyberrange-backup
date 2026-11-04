@@ -194,6 +194,19 @@ async def lifespan(app: FastAPI):
             conn.commit()
             logger.info("Added scoreboard_name_mode column to users table")
 
+        # --- Optional survey consent (platform/usage surveys only) ---
+        users_columns = [c['name'] for c in inspector.get_columns('users')]
+        survey_columns = {
+            'survey_opt_in': "BOOLEAN DEFAULT FALSE NOT NULL",
+            'survey_opt_in_at': "TIMESTAMP",
+            'survey_consent_version': "VARCHAR(32)",
+        }
+        for column, ddl in survey_columns.items():
+            if column not in users_columns:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {column} {ddl}"))
+                conn.commit()
+                logger.info("Added %s column to users table", column)
+
         # --- Lab visibility lifecycle: add 'visibility' and 'created_by' to labs ---
         # Re-read labs columns after potential earlier migrations
         labs_columns = [c['name'] for c in inspector.get_columns('labs')]

@@ -20,7 +20,7 @@ from app.database import get_db
 from app.models import (
     User, WireGuardConfig, Lab, CourseLabAssignment, CourseEnrollment,
     Course, InviteCode, Assignment, AssignmentLab,
-    Competition, CompetitionParticipant,
+    Competition, CompetitionParticipant, SurveyConsentEvent,
 )
 from app.auth import (
     authenticate_user,
@@ -46,6 +46,11 @@ from app.services.audit import log_admin_action, AuditActions
 from app.services.erasure import erase_user, ErasureBlocked
 from app.services.settings_service import get_setting_fresh
 from app.services.privacy import redact_ip
+from app.services.survey_consent import (
+    SURVEY_CONSENT_UPDATED,
+    SURVEY_CONSENT_VERSION,
+    survey_privacy_statement,
+)
 
 wireguard_manager = WireGuardManager()
 
@@ -387,6 +392,8 @@ async def get_user_settings(
         "scoreboard_name_mode": getattr(current_user, "scoreboard_name_mode", None) or "real_name",
         "login_notifications": getattr(current_user, "login_notifications", True),
         "notification_prefs": prefs or {},
+        "survey_opt_in": bool(getattr(current_user, "survey_opt_in", False)),
+        "survey_consent_version": getattr(current_user, "survey_consent_version", None),
         "mfa_enabled": getattr(current_user, "mfa_enabled", False),
         "recovery_codes_remaining": recovery_count,
         "last_login_at": current_user.last_login_at,
@@ -420,6 +427,106 @@ async def update_user_settings(
     db.commit()
     db.refresh(current_user)
     return {"message": "Settings updated"}
+
+
+class SurveyConsentUpdate(BaseModel):
+    opt_in: bool
+    policy_version: Optional[str] = Field(None, max_length=32)
+
+
+def _survey_consent_state(user: User, *, include_statement: bool = False) -> dict:
+    state = {
+        "opt_in": bool(getattr(user, "survey_opt_in", False)),
+        "opted_in_at": getattr(user, "survey_opt_in_at", None),
+        "consent_version": getattr(user, "survey_consent_version", None),
+        "current_version": SURVEY_CONSENT_VERSION,
+        "statement_updated": SURVEY_CONSENT_UPDATED,
+    }
+    if include_statement:
+        state["statement"] = survey_privacy_statement(
+            settings.PRIVACY_CONTACT_EMAIL
+        )
+    return state
+
+
+@router.get("/survey-consent")
+async def get_survey_consent(
+    current_user: User = Depends(get_current_active_user),
+):
+    """Return the account's survey opt-in state and the current statement."""
+    return _survey_consent_state(current_user, include_statement=True)
+
+
+@router.post("/survey-consent")
+async def update_survey_consent(
+    payload: SurveyConsentUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    """Record an explicit survey opt-in or withdrawal.
+
+    Opting in requires the caller to have reviewed the current statement. Every
+    change is appended to ``survey_consent_events`` with the statement version
+    so the consent decision remains auditable after the user row changes.
+    """
+    currently_in = bool(getattr(current_user, "survey_opt_in", False))
+
+    if payload.opt_in:
+        if payload.policy_version != SURVEY_CONSENT_VERSION:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Please review the current survey privacy statement "
+                    "before opting in."
+                ),
+            )
+        if not currently_in:
+            current_user.survey_opt_in = True
+            current_user.survey_opt_in_at = datetime.now(timezone.utc)
+            current_user.survey_consent_version = SURVEY_CONSENT_VERSION
+            db.add(
+                SurveyConsentEvent(
+                    user_id=current_user.id,
+                    action="opt_in",
+                    policy_version=SURVEY_CONSENT_VERSION,
+                )
+            )
+            logger.info(
+                "User %s opted in to platform surveys (policy %s)",
+                current_user.username,
+                SURVEY_CONSENT_VERSION,
+            )
+    else:
+        # Withdrawal is always allowed and is recorded even if the account was
+        # already opted out, so the user's request is visible in the history.
+        current_user.survey_opt_in = False
+        current_user.survey_opt_in_at = None
+        if not getattr(current_user, "survey_consent_version", None):
+            current_user.survey_consent_version = SURVEY_CONSENT_VERSION
+        db.add(
+            SurveyConsentEvent(
+                user_id=current_user.id,
+                action="opt_out",
+                policy_version=SURVEY_CONSENT_VERSION,
+            )
+        )
+        logger.info(
+            "User %s withdrew consent for platform surveys (policy %s)",
+            current_user.username,
+            SURVEY_CONSENT_VERSION,
+        )
+
+    db.commit()
+    db.refresh(current_user)
+    return {
+        **_survey_consent_state(current_user),
+        "message": (
+            "You are opted in to optional platform surveys."
+            if current_user.survey_opt_in
+            else "You are opted out of platform surveys."
+        ),
+    }
 
 @router.post("/mfa/recovery-codes")
 async def generate_recovery_codes(
@@ -501,6 +608,7 @@ async def export_user_data(
         LabSession,
         LevelQuiz,
         QuizAttempt,
+        SurveyConsentEvent,
         WireGuardConfig,
     )
 
@@ -553,6 +661,12 @@ async def export_user_data(
         .all()
     )
     vpn = db.query(WireGuardConfig).filter(WireGuardConfig.user_id == uid).first()
+    consent_events = (
+        db.query(SurveyConsentEvent)
+        .filter(SurveyConsentEvent.user_id == uid)
+        .order_by(SurveyConsentEvent.created_at)
+        .all()
+    )
 
     completion_lab_ids = [c.lab_id for c in completions]
     lab_by_id = {
@@ -681,6 +795,20 @@ async def export_user_data(
             }
             for event in activity
         ],
+        "survey_consent": {
+            "opt_in": bool(getattr(current_user, "survey_opt_in", False)),
+            "opted_in_at": getattr(current_user, "survey_opt_in_at", None),
+            "consent_version": getattr(current_user, "survey_consent_version", None),
+            "current_version": SURVEY_CONSENT_VERSION,
+            "history": [
+                {
+                    "action": event.action,
+                    "policy_version": event.policy_version,
+                    "created_at": event.created_at,
+                }
+                for event in consent_events
+            ],
+        },
     }
 
 

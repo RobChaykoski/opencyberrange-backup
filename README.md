@@ -315,6 +315,12 @@ classrooms where not every student has the same hardware:
 - **Data minimisation.** The wall exposes only a display name, the latest badge,
   and a relative timestamp. It does not expose email addresses, student IDs, or
   avatars.
+- **Optional surveys, explicit consent.** Platform and usage surveys are
+  off by default. Profile → **Surveys** shows the versioned privacy statement
+  before consent is recorded, keeps an append-only consent history, and allows
+  withdrawal at any time. Survey consent covers platform feedback only; it does
+  not permit collection of passwords, grades, lab flags, or sensitive personal
+  data. See [Survey privacy and consent](docs/SURVEY-PRIVACY.md).
 - **Learning-impact stance.** Completion, time, and badge counts are activity
   signals, not measures of ability. The platform does not use them for public
   rankings, hiring, promotion, or discipline.

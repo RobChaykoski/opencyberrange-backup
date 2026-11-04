@@ -602,6 +602,7 @@
           </form>
         </div>
 
+        <SurveyConsentPanel />
         <PrivacyDataPanel :mfa-enabled="!!user.mfa_enabled" />
       </div>
 
@@ -618,6 +619,7 @@ import { useVpnStatus } from '../composables/useVpnStatus'
 import { usePoll } from '../composables/usePoll'
 import { useModules } from '../composables/useModules'
 import PrivacyDataPanel from '../components/PrivacyDataPanel.vue'
+import SurveyConsentPanel from '../components/SurveyConsentPanel.vue'
 import { getUserTimeZone } from '../utils/timezone'
 
 const route = useRoute()

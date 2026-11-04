@@ -44,6 +44,12 @@ class User(Base):
     notification_prefs = Column(Text, nullable=True)
     # Email the user on a new login from a new IP.
     login_notifications = Column(Boolean, default=True, server_default=text("true"), nullable=False)
+    # --- Optional survey consent (platform/usage surveys only) ---
+    # Opt-in is explicit and separate from account creation. The timestamp and
+    # statement version make the consent record auditable and support withdrawal.
+    survey_opt_in = Column(Boolean, default=False, server_default=text("false"), nullable=False)
+    survey_opt_in_at = Column(DateTime, nullable=True)
+    survey_consent_version = Column(String(32), nullable=True)
     # Last successful login metadata (for session awareness).
     last_login_at = Column(DateTime, nullable=True)
     last_login_ip = Column(String(64), nullable=True)
@@ -956,3 +962,24 @@ class ExerciseGenItem(Base):
             name="ck_genitem_status",
         ),
     )
+
+class SurveyConsentEvent(Base):
+    """Append-only record of survey consent decisions.
+
+    The user row carries the current state; this table preserves the history
+    needed to show when and under which statement version consent was given or
+    withdrawn. Rows cascade with the account so erasure removes them.
+    """
+
+    __tablename__ = "survey_consent_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    action = Column(String(16), nullable=False)  # opt_in | opt_out
+    policy_version = Column(String(32), nullable=False)
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)

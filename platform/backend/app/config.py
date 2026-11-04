@@ -45,6 +45,9 @@ class Settings(BaseSettings):
 
     # Server public hostname (for general use)
     SERVER_PUBLIC_HOST: str = "localhost"
+
+    # Contact shown in the survey privacy statement and other privacy notices.
+    PRIVACY_CONTACT_EMAIL: str = "privacy@opencyberrange.local"
     
     class Config:
         env_file = ".env"

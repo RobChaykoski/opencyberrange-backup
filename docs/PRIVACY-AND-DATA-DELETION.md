@@ -15,6 +15,7 @@ processing, and a retention schedule still need review by counsel or a DPO.
 | VPN: private/public keys and client IP | `wireguard_configs` | Deleted and peer removed |
 | Learning: enrolments, completions, flag attempts, quiz attempts, achievements, competition entries, completion resets | User-linked tables | Deleted |
 | Lab sessions and containers | `lab_sessions` + Docker | All sessions destroyed and rows deleted |
+| Survey consent state and history | `users.survey_*`, `survey_consent_events` | Deleted (cascades with the account) |
 | WebSocket tickets | `ws_tickets` | Deleted |
 | Activity feed | `activity_events` | Anonymised: actor, target, label, detail and IP removed |
 | Invite addresses | `invite_codes.email` | Scrubbed |
