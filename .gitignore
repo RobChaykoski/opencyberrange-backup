@@ -65,11 +65,17 @@ platform/certs/
 _site/
 _site_*/
 _site-*/
-# NOTE: platform/frontend/wiki IS shipped (prebuilt track wiki baked into
-# the image). Only ignore stray top-level wiki staging dirs.
+# The workbook wiki and generated routing metadata are build artifacts. They
+# are produced by platform/wiki-builder into the wiki_data volume; never commit
+# a stale snapshot. /wiki/ covers stray top-level staging dirs.
 /wiki/
-!platform/frontend/wiki/
+platform/frontend/wiki/
+platform/frontend/wiki.prev/
 platform/frontend/dist/
+tools/wiki-gen/generated/
+platform/labs/.prebuild-progress.json
+scripts/.build-logs/
+scripts/.lab-build-manifest.json
 
 # Instance state: database dumps, the entitlement file for this install, and
 # what the updater records about the last run.

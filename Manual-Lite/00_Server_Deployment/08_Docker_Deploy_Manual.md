@@ -388,3 +388,28 @@ docker compose --env-file .env -f docker-compose.prod.yml exec -T backend \
 docker compose --env-file .env -f docker-compose.prod.yml exec -T backend \
   python /app/app/scripts/discover_labs.py
 ```
+
+## Build workbooks and lab images
+
+The workbook wiki and lab images are build artifacts. Build them before
+starting or updating the frontend:
+
+```bash
+# From the repository root
+scripts/build-wiki.sh          # build the wiki_data volume (tracks + manual)
+scripts/prebuild-labs.sh --changed
+scripts/verify-lab-builds.sh
+```
+
+`scripts/build-assets.sh all` runs all three. The wiki builder is a pinned
+container image, so the host does not need MkDocs installed. The frontend
+mounts `wiki_data` read-only at `/usr/share/nginx/wiki`; the frontend image no
+longer contains the wiki.
+
+Set `LAB_ALLOW_ON_DEMAND_BUILD=false` in `.env` after the initial prebuild.
+Spawn then fails with a clear message if an image is missing, instead of
+starting a slow build while a student waits.
+
+The lab manifest at `scripts/.lab-build-manifest.json` is generated. Keep it
+on the host between deploys; `--changed` uses it to skip labs whose source hash
+and stable `ocr-lab/<slug>-<service>:latest` tags are unchanged.

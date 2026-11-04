@@ -229,6 +229,11 @@ class DockerManager:
     # limits keeps them. Env-overridable for bigger or smaller hosts.
     LAB_MEM_LIMIT = os.environ.get("LAB_MEM_LIMIT", "1g")
     LAB_CPU_LIMIT = os.environ.get("LAB_CPU_LIMIT", "1.0")
+    # Production should set this to false so a missing prebuilt image fails
+    # clearly instead of triggering a slow build during a student spawn.
+    ALLOW_ON_DEMAND_BUILD = os.environ.get(
+        "LAB_ALLOW_ON_DEMAND_BUILD", "true"
+    ).strip().lower() not in {"0", "false", "no", "off"}
 
     def _ensure_shared_container_running(self, container_name: str) -> bool:
         """
@@ -1607,6 +1612,12 @@ fi
             labels = svc_cfg.get("labels", {})
             svc_override = {}
 
+            # Build services use the stable image tag published by
+            # scripts/prebuild-labs.sh. This avoids retagging a copy per user
+            # and makes the fast path work without a build.
+            if svc_cfg.get("build"):
+                svc_override["image"] = f"ocr-lab/{lab_slug}-{svc_name}:latest"
+
             # Default CPU / memory caps. Skipped when the compose file sets
             # its own mem_limit / cpus / deploy limits for the service.
             if not svc_cfg.get("mem_limit") and not svc_cfg.get("deploy"):
@@ -1706,6 +1717,19 @@ fi
                 )
 
                 if result.returncode != 0:
+                    # Images not pre-built. In production, fail clearly instead
+                    # of building during a student spawn; the deploy pipeline
+                    # should have run scripts/prebuild-labs.sh.
+                    if not self.ALLOW_ON_DEMAND_BUILD:
+                        missing = result.stderr or result.stdout or "image missing"
+                        error_msg = (
+                            f"Lab {lab_slug} is not prepared on this server. "
+                            f"Run scripts/prebuild-labs.sh --lab {lab_slug} "
+                            f"(on-demand builds are disabled). Details: {missing}"
+                        )
+                        logger.error(error_msg)
+                        self._cleanup_failed_spawn(user_id, lab_slug, override_path)
+                        raise Exception(error_msg)
                     # Images not pre-built - fall back to build+start (slow path)
                     logger.warning(f"Pre-built images not found for {lab_slug}, building on-demand (this may be slow)")
                     result = subprocess.run(

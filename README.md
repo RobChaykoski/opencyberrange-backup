@@ -332,6 +332,26 @@ classrooms where not every student has the same hardware:
 The screenshots in this README use a temporary synthetic account and temporary
 demo records. No real learner names, emails, or records are shown.
 
+## Building workbooks and labs
+
+The workbook wiki and lab images are build artifacts, not source files.
+
+- `scripts/build-wiki.sh` builds every track wiki, the reference manual, and
+  any course wikis into the `wiki_data` volume. The frontend mounts that volume
+  read-only; the frontend image no longer bakes HTML.
+- `scripts/prebuild-labs.sh --changed` builds only labs whose source hash or
+  stable image tag changed. `--all` forces a full rebuild.
+- `scripts/verify-lab-builds.sh` validates every lab compose file, checks the
+  stable `ocr-lab/<slug>-<service>:latest` images, and verifies workbook links
+  against the running frontend.
+- `scripts/build-assets.sh all` runs the wiki build, the changed-lab prebuild,
+  and the verification pass.
+
+The lab build manifest lives at `scripts/.lab-build-manifest.json` and is
+generated, not committed. Set `LAB_ALLOW_ON_DEMAND_BUILD=false` in production
+so a missing image fails with a clear "run prebuild-labs.sh" message instead of
+building during a student spawn.
+
 ## Security and operations
 
 ### Authentication

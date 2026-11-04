@@ -31,8 +31,11 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Wiki content is a single namespaced tree: wiki/range/<slug>/, wiki/course/<slug>/,
 # and wiki/index.html. One COPY bakes it all in. The [i] glob keeps the build from
 # failing on a fresh clone without the wiki/ dir.
-RUN mkdir -p /usr/share/nginx/wiki /usr/share/nginx/downloads
-COPY wiki/ /usr/share/nginx/wiki/
+# The workbook wiki lives in the wiki_data volume built by the wiki-builder
+# service. Keep only a placeholder here so nginx has a file to serve before the
+# first build.
+RUN mkdir -p /usr/share/nginx/wiki /usr/share/nginx/downloads && \
+    printf '%s\n' '<!doctype html><title>Workbook wiki</title><p>The workbook wiki has not been built yet. Run scripts/build-wiki.sh.</p>' > /usr/share/nginx/wiki/index.html
 COPY binaries/ /usr/share/nginx/downloads/
 
 # Copy nginx configuration (HTTP default + SSL variant)

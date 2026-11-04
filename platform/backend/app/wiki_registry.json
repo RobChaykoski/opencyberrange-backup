@@ -12,6 +12,12 @@
       "docs_dir": "Workbook",
       "theme": "deep purple"
     },
+    "forensics": {
+      "auth": "student",
+      "config": "mkdocs-forensics.yml",
+      "docs_dir": "Workbook",
+      "theme": "teal"
+    },
     "linpt": {
       "auth": "student",
       "config": "mkdocs-linpt.yml",

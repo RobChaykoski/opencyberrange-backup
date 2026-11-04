@@ -120,6 +120,7 @@ services:
       - "443:443"
     volumes:
       - ./certs:/etc/nginx/certs:ro
+      - wiki_data:/usr/share/nginx/wiki:ro
     depends_on:
       backend:
         condition: service_healthy
@@ -132,6 +133,24 @@ services:
       start_period: 30s
     restart: unless-stopped
 
+  # One-shot workbook builder. Run explicitly with:
+  #   docker compose --profile tools run --rm wiki-builder
+  # It writes the namespaced wiki tree into the wiki_data volume, which the
+  # frontend mounts read-only. The frontend image no longer bakes wiki HTML.
+  wiki-builder:
+    build:
+      context: ./wiki-builder
+      dockerfile: Dockerfile
+    image: ocr-wiki-builder:latest
+    profiles: ["tools"]
+    volumes:
+      - ..:/repo:ro
+      - wiki_data:/out
+    environment:
+      TZ: UTC
+    restart: "no"
+
 volumes:
   postgres_data:
   workbook_data:
+  wiki_data:

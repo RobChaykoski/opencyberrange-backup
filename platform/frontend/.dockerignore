@@ -3,3 +3,8 @@ node_modules
 dist
 .git
 *.log
+
+# The workbook wiki is built into the wiki_data volume by the wiki-builder
+# service, not baked into the frontend image.
+wiki
+wiki.prev

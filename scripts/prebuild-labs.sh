@@ -47,6 +47,9 @@ FILTER_LAB=""
 DRY_RUN=false
 PARALLEL=1
 FORCE=false
+CHANGED_ONLY=true
+MANIFEST_FILE="$PROJECT_ROOT/scripts/.lab-build-manifest.json"
+HASH_HELPER="$SCRIPT_DIR/lab_build_hash.py"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -71,6 +74,14 @@ while [[ $# -gt 0 ]]; do
             FORCE=true
             shift
             ;;
+        --changed)
+            CHANGED_ONLY=true
+            shift
+            ;;
+        --all)
+            CHANGED_ONLY=false
+            shift
+            ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -79,6 +90,8 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --track TRACK    Only build labs in this track directory (e.g., Windows, Web)"
             echo "  --lab SLUG       Only build a specific lab by slug"
+            echo "  --changed        Build only new or changed labs (default)"
+            echo "  --all            Rebuild every selected lab, even if unchanged"
             echo "  --parallel N     Build N labs concurrently (default: 1)"
             echo "  --force          Force rebuild even if image exists (--no-cache)"
             echo "  --dry-run        Show what would be built without building"
@@ -138,6 +151,7 @@ fi
 
 # Collect labs to build
 declare -a LABS_TO_BUILD=()
+SKIPPED=0
 
 for track_dir in "$LABS_DIR"/*/; do
     track_name=$(basename "$track_dir")
@@ -166,7 +180,19 @@ for track_dir in "$LABS_DIR"/*/; do
             continue
         fi
 
-        LABS_TO_BUILD+=("$track_name|$lab_slug|$lab_dir")
+        local_meta=$(lab_meta "$lab_dir")
+        lab_hash=$(printf '%s' "$local_meta" | python3 -c 'import json,sys; print(json.load(sys.stdin)["hash"])')
+        lab_services=$(printf '%s' "$local_meta" | python3 -c 'import json,sys; print(" ".join(json.load(sys.stdin)["services"]))')
+
+        if [ "$CHANGED_ONLY" = true ] && [ "$FORCE" != true ]; then
+            stored_hash=$(manifest_hash "$lab_slug")
+            if [ -n "$lab_hash" ] && [ "$stored_hash" = "$lab_hash" ] && images_present "$lab_slug" $lab_services; then
+                SKIPPED=$((SKIPPED + 1))
+                continue
+            fi
+        fi
+
+        LABS_TO_BUILD+=("$track_name|$lab_slug|$lab_dir|$lab_hash|$lab_services")
     done
 done
 
@@ -184,6 +210,9 @@ if [ "$TOTAL" -eq 0 ]; then
 fi
 
 echo -e "Found ${GREEN}$TOTAL${NC} labs to build"
+if [ "$SKIPPED" -gt 0 ]; then
+    echo -e "Skipped ${GREEN}$SKIPPED${NC} unchanged lab(s) with current images"
+fi
 echo ""
 
 # --- Order by curriculum so a backgrounded prebuild readies the labs students
@@ -218,6 +247,60 @@ write_progress() {
         "$(_json_array "${_failed_slugs[@]}")" "${1:-}" "${2:-false}" \
         > "$PROGRESS_FILE" 2>/dev/null || true
 }
+
+# --- Incremental build manifest ---------------------------------------------
+# A lab is rebuilt when its content hash (lab dir + every build context) or
+# service list changes, or when a stable image tag is missing. The manifest is
+# generated state and is not committed.
+lab_meta() {
+    python3 "$HASH_HELPER" "$1"
+}
+
+manifest_hash() {
+    [ -f "$MANIFEST_FILE" ] || { echo ""; return 0; }
+    python3 - "$MANIFEST_FILE" "$1" <<'PY'
+import json, sys
+try:
+    data = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    print("")
+    raise SystemExit
+entry = (data.get("labs") or {}).get(sys.argv[2]) or {}
+print(entry.get("hash", ""))
+PY
+}
+
+images_present() {
+    local slug="$1"; shift
+    [ "$#" -gt 0 ] || return 0
+    local svc
+    for svc in "$@"; do
+        docker image inspect "ocr-lab/${slug}-${svc}:latest" >/dev/null 2>&1 || return 1
+    done
+    return 0
+}
+
+manifest_record() {
+    local slug="$1" hash="$2" services="$3"
+    mkdir -p "$(dirname "$MANIFEST_FILE")"
+    python3 - "$MANIFEST_FILE" "$slug" "$hash" "$services" <<'PY'
+import datetime, json, sys
+path, slug, digest, services = sys.argv[1:5]
+try:
+    data = json.load(open(path, encoding="utf-8"))
+except Exception:
+    data = {"version": 1, "labs": {}}
+data.setdefault("labs", {})[slug] = {
+    "hash": digest,
+    "services": services.split(),
+    "built_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+}
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(data, handle, indent=2, sort_keys=True)
+    handle.write("\n")
+PY
+}
+
 write_progress "" false
 
 # --- Disk preflight: fail fast with a plain message, not 60 cryptic GPG errors
@@ -247,6 +330,8 @@ build_lab() {
     local lab_dir="$3"
     local index="$4"
     local total="$5"
+    local lab_hash="$6"
+    local lab_services="$7"
     local log_file="$LOG_DIR/${lab_slug}.log"
 
     if [ "$DRY_RUN" = true ]; then
@@ -263,6 +348,20 @@ build_lab() {
     fi
 
     if "${build_args[@]}" > "$log_file" 2>&1; then
+        # Publish stable tags the backend can use directly, without per-user
+        # retagging. The hash tag keeps an immutable record of what was built.
+        local svc img_id
+        for svc in $lab_services; do
+            img_id=$(docker compose -f "$lab_dir/docker-compose.yml" -p "prebuild-${lab_slug}" images -q "$svc" 2>/dev/null | head -n 1)
+            if [ -z "$img_id" ]; then
+                echo -e "  [${index}/${total}] ${RED}FAILED${NC} ${track_name}/${lab_slug} (no image for service ${svc})"
+                echo -e "           ${YELLOW}Log: $log_file${NC}"
+                return 1
+            fi
+            docker tag "$img_id" "ocr-lab/${lab_slug}-${svc}:latest" >/dev/null 2>&1 || true
+            [ -n "$lab_hash" ] && docker tag "$img_id" "ocr-lab/${lab_slug}-${svc}:${lab_hash}" >/dev/null 2>&1 || true
+        done
+        manifest_record "$lab_slug" "$lab_hash" "$lab_services"
         echo -e "  [${index}/${total}] ${GREEN}OK${NC}     ${track_name}/${lab_slug}"
         return 0
     else
@@ -279,7 +378,7 @@ FAILED_LABS=()
 
 DISK_ABORT=false
 for i in "${!LABS_TO_BUILD[@]}"; do
-    IFS='|' read -r track_name lab_slug lab_dir <<< "${LABS_TO_BUILD[$i]}"
+    IFS='|' read -r track_name lab_slug lab_dir lab_hash lab_services <<< "${LABS_TO_BUILD[$i]}"
     index=$((i + 1))
 
     # Stop BEFORE the disk fills. A truncated image/apt write does not just fail
@@ -300,7 +399,7 @@ for i in "${!LABS_TO_BUILD[@]}"; do
     fi
 
     write_progress "$lab_slug" false
-    if build_lab "$track_name" "$lab_slug" "$lab_dir" "$index" "$TOTAL"; then
+    if build_lab "$track_name" "$lab_slug" "$lab_dir" "$index" "$TOTAL" "$lab_hash" "$lab_services"; then
         SUCCESS=$((SUCCESS + 1))
         _done_slugs+=("$lab_slug"); write_progress "" false
     else
@@ -322,9 +421,11 @@ echo ""
 
 if [ "$DRY_RUN" = true ]; then
     echo -e "  Would build: ${TOTAL} labs"
+    [ "$SKIPPED" -gt 0 ] && echo -e "  Up to date: ${SKIPPED} labs"
 else
     echo -e "  Total:   ${TOTAL}"
     echo -e "  ${GREEN}Success: ${SUCCESS}${NC}"
+    [ "$SKIPPED" -gt 0 ] && echo -e "  Up to date: ${SKIPPED}"
     if [ "$FAILED" -gt 0 ]; then
         echo -e "  ${RED}Failed:  ${FAILED}${NC}"
         echo ""
